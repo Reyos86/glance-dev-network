@@ -60,13 +60,3 @@ inputs:
   - WWE ID WOMEN'S
   help: ROTATE advances through the selected brand once per minute. Choose a title
     to keep it on screen; set Brand to ALL to find any title.
-- key: mode
-  type: choice
-  app_input_type: dropdown
-  label: Data
-  default: LIVE
-  choices:
-  - LIVE
-  - DEMO
-  help: LIVE fetches current champions from Wikipedia. DEMO uses clearly labelled
-    sample names to preview every belt without internet.

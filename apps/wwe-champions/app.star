@@ -924,9 +924,7 @@ def format_won_date(s):
     return ""
 
 
-def footer_right(c, brand_label, won, demo, slot, count):
-    if demo:
-        return "DEMO"
+def footer_right(c, brand_label, won, slot, count):
     if won == "":
         return str(slot + 1) + "/" + str(count)
     since = "SINCE " + won
@@ -1036,17 +1034,10 @@ def board(c, ctx):
     if brand not in ORDER + ["ALL", "DEV"]:
         error_screen(c, "BAD BRAND", "CHOOSE A BRAND")
         return
-    mode = ctx.inputs.get("mode", "LIVE")
-    demo = mode == "DEMO"
-    if demo:
-        brands = {}
-        for spec in TITLES:
-            brands.setdefault(spec[3], []).append({"title": spec[0], "champ": "SAMPLE CHAMP", "members": [], "won": "5/4/26"})
-    else:
-        brands = fetch_brands()
-        if brands == None:
-            error_screen(c, "FEED OFFLINE", "TRY AGAIN LATER")
-            return
+    brands = fetch_brands()
+    if brands == None:
+        error_screen(c, "FEED OFFLINE", "TRY AGAIN LATER")
+        return
     rows = selected_rows(brands, brand)
     choice = ctx.inputs.get("title", "ROTATE")
     if choice != "ROTATE":
@@ -1070,7 +1061,7 @@ def board(c, ctx):
     brandmeta = BRANDS[spec[3]]
     brand_label = brandmeta["label"]
     c.text(brand_label, 91, 27, font = "4x5", color = brandmeta["color"])
-    footer = footer_right(c, brand_label, item.get("won", ""), demo, slot, len(rows))
+    footer = footer_right(c, brand_label, item.get("won", ""), slot, len(rows))
     c.text(footer, 181, 27, font = "4x5", color = "#9BA8BB", align = "right")
 
 def strip_refs(s):

@@ -34,7 +34,6 @@ North American globe stays on brown leather.
 |------|----------------|
 | **Brand** | `ALL`, `RAW`, `SMACKDOWN`, `NXT`, `OPEN`, `EVOLVE`, `ID`, or `DEV`. `OPEN` is the cross-brand women's tag title. `DEV` combines OPEN, Evolve, and ID. |
 | **Title** | `ROTATE` walks the selected brand once a minute. Pick a title to pin it. Set Brand to `ALL` if the title you want is on another brand. |
-| **Data** | `LIVE` fetches current champions. `DEMO` draws sample names and a `DEMO` footer with no network. |
 
 ## Layout
 
@@ -73,7 +72,6 @@ added.
 | Wikipedia unreachable | `FEED OFFLINE` / `TRY AGAIN LATER` |
 | Brand/title combo empty | `NO TITLE FOUND` / `SET ALL / ROTATE` |
 | Bad brand setting | `BAD BRAND` / `CHOOSE A BRAND` |
-| Demo mode | Sample names, `DEMO` on the footer |
 
 ```powershell
 pip install -e .
