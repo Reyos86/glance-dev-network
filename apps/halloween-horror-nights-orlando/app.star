@@ -411,22 +411,15 @@ def read_hhn(ctx):
     today = civil_from_days(now_abs // 1440)
     today_key = date_key(today)
     today_day = days_from_civil(today[0], today[1], today[2])
-    # themeparks.wiki dates a night by the evening it starts ("2026-09-10",
-    # 6:30P-2A), not by every calendar day it touches. Past midnight, today's
-    # key has already rolled to the 11th, so last night's entry has to be
-    # found by yesterday's key or a live event just silently expires at 12AM.
-    yesterday_key = date_key(civil_from_days(now_abs // 1440 - 1))
+    time_of_day = now_abs % 1440
 
     nights = [e for e in entries if is_hhn(e)]
     tonight = None
-    last_night = None
     next_night = None
     for e in nights:
         d = get(e, "date", "")
         if d == today_key:
             tonight = e
-        elif d == yesterday_key:
-            last_night = e
         elif next_night == None and d > today_key:
             next_night = e
 
@@ -438,17 +431,30 @@ def read_hhn(ctx):
         houses.append([standby(e), get(e, "name", "")])
     houses = sorted(houses, key = lambda r: -1 if r[0] == None else -r[0])
 
-    # Still inside last night's window after midnight takes priority over
-    # whatever today's own date says - the event and its houses haven't
-    # changed, only the calendar day has.
-    if last_night != None:
-        close_abs = epoch_minutes_iso(get(last_night, "closingTime"))
-        if now_abs < close_abs:
-            return {
-                "online": True, "state": "open",
-                "hours": [clock(get(last_night, "openingTime")), clock(get(last_night, "closingTime"))],
-                "houses": houses,
-            }
+    # themeparks.wiki dates a night by the evening it starts ("2026-09-10",
+    # 6:30P-2A), and the DEFAULT /schedule endpoint only lists today onward -
+    # it drops that entry the instant the calendar date rolls to the 11th,
+    # even though the houses are still OPERATING for another hour or two
+    # (verified against the live feed, not assumed). So before 6 AM, look
+    # yesterday up on the dated monthly endpoint instead, which still has it,
+    # and check whether its real closing time has actually passed yet.
+    if time_of_day < 360:
+        yday = civil_from_days(now_abs // 1440 - 1)
+        yesterday_key = date_key(yday)
+        month_sched = fetch(PARK_ID + "/schedule/" + str(yday[0]) + "/" + two(yday[1]))
+        last_night = None
+        for e in lst(month_sched, "schedule"):
+            if is_hhn(e) and get(e, "date", "") == yesterday_key:
+                last_night = e
+                break
+        if last_night != None:
+            close_abs = epoch_minutes_iso(get(last_night, "closingTime"))
+            if now_abs < close_abs:
+                return {
+                    "online": True, "state": "open",
+                    "hours": [clock(get(last_night, "openingTime")), clock(get(last_night, "closingTime"))],
+                    "houses": houses,
+                }
 
     if tonight != None:
         open_abs = epoch_minutes_iso(get(tonight, "openingTime"))
