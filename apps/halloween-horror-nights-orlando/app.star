@@ -411,14 +411,23 @@ def read_hhn(ctx):
     today = civil_from_days(now_abs // 1440)
     today_key = date_key(today)
     today_day = days_from_civil(today[0], today[1], today[2])
+    # themeparks.wiki dates a night by the evening it starts ("2026-09-10",
+    # 6:30P-2A), not by every calendar day it touches. Past midnight, today's
+    # key has already rolled to the 11th, so last night's entry has to be
+    # found by yesterday's key or a live event just silently expires at 12AM.
+    yesterday_key = date_key(civil_from_days(now_abs // 1440 - 1))
 
     nights = [e for e in entries if is_hhn(e)]
     tonight = None
+    last_night = None
     next_night = None
     for e in nights:
-        if get(e, "date", "") == today_key:
+        d = get(e, "date", "")
+        if d == today_key:
             tonight = e
-        elif next_night == None and get(e, "date", "") > today_key:
+        elif d == yesterday_key:
+            last_night = e
+        elif next_night == None and d > today_key:
             next_night = e
 
     houses = []
@@ -428,6 +437,18 @@ def read_hhn(ctx):
             continue
         houses.append([standby(e), get(e, "name", "")])
     houses = sorted(houses, key = lambda r: -1 if r[0] == None else -r[0])
+
+    # Still inside last night's window after midnight takes priority over
+    # whatever today's own date says - the event and its houses haven't
+    # changed, only the calendar day has.
+    if last_night != None:
+        close_abs = epoch_minutes_iso(get(last_night, "closingTime"))
+        if now_abs < close_abs:
+            return {
+                "online": True, "state": "open",
+                "hours": [clock(get(last_night, "openingTime")), clock(get(last_night, "closingTime"))],
+                "houses": houses,
+            }
 
     if tonight != None:
         open_abs = epoch_minutes_iso(get(tonight, "openingTime"))
