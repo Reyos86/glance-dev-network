@@ -605,11 +605,19 @@ GAP = 4
 
 def house_row(c, x0, colw, y, w, name):
     mins = (str(w) + "M") if w != None else "--"
-    col = wait_color(w)
     pw = c.text_width(mins, "4x5") + 4
     px = x0 + colw - pw
-    c.badge(mins, px, y, color = "white" if col in ["red", DIM] else "black",
-            bg = col if w != None else "#252525", font = "4x5")
+    if w != None:
+        # badge() sizes its pill around the text's own lit pixels, so a
+        # dash (almost no vertical ink) would draw a much shorter, oddly
+        # placed pill next to a full-height "45M" one - plain text avoids
+        # that mismatch and reads as "nothing to highlight yet" anyway.
+        col = wait_color(w)
+        c.badge(mins, px, y, color = "white" if col == "red" else "black",
+                bg = col, font = "4x5")
+    else:
+        c.text(mins, x0 + colw - c.text_width(mins, "4x5"), y + 1, font = "4x5",
+               color = DIM)
     c.text(house_name(c, name, px - 3 - x0), x0, y + 1, font = "4x5", color = INK)
 
 def house_cards(c, ctx, label, lo, hi, which):
