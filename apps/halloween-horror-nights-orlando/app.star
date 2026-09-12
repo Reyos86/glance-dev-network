@@ -477,7 +477,7 @@ def read_hhn(ctx):
     return {"online": True, "state": "offseason", "houses": []}
 
 # Sample states for previewing every screen while off event nights:
-# _debugstate = open | tonight | countdown | offseason | offline.
+# _debugstate = open | tonight | screamearly | countdown | offseason | offline.
 DEMO_HOUSES = [
     [75, "Hellraiser"], [60, "Stranger Things 5"], [55, "Sinners"],
     [50, "INVASION: Alien Abduction"], [45, "Cybergoria"],
@@ -486,11 +486,25 @@ DEMO_HOUSES = [
     [20, "H.R. Bloodengutz Presents: A Halloween Fright-Tacular!"],
 ]
 
+# Only the 3 houses Universal confirmed for the 2P Scream Early add-on are
+# posting a wait; the rest still show "--" until general gates at 6:30P.
+SCREAM_EARLY_HOUSES = [
+    [25, "Stranger Things 5"], [20, "Hellraiser"],
+    [15, "Jack & Oddfellow: Chaos & Control"],
+    [None, "Sinners"], [None, "Ozzy Osbourne: Prince of Darkness"],
+    [None, "Cybergoria"], [None, "MADLANDS: Caged Cannibals"],
+    [None, "INVASION: Alien Abduction"], [None, "Evil Dead Burn"],
+    [None, "H.R. Bloodengutz Presents: A Halloween Fright-Tacular!"],
+]
+
 def demo_state(dbg):
     if dbg == "offline":
         return {"online": False}
     if dbg == "open":
         return {"online": True, "state": "open", "hours": ["6:30P", "2A"], "houses": DEMO_HOUSES}
+    if dbg == "screamearly":
+        return {"online": True, "state": "tonight", "hours": ["6:30P", "2A"],
+                "houses": SCREAM_EARLY_HOUSES}
     if dbg == "tonight":
         return {"online": True, "state": "tonight", "hours": ["6:30P", "2A"], "houses": []}
     if dbg == "countdown":
@@ -511,12 +525,27 @@ def wait_color(w):
     return "red"
 
 # ---- drawing ------------------------------------------------------------------
+def scream_early(st):
+    """True once houses are posting real waits before the general 6:30P
+    gate. Universal sells a paid "Scream Early" add-on that lets a handful
+    of houses open as early as 2P, but that's not on any schedule endpoint
+    we can fetch - it's confirmed here straight from the live feed (a house
+    actually posting a wait), never assumed from a fixed clock time."""
+    if st["state"] != "tonight":
+        return False
+    for row in st["houses"]:
+        if row[0] != None:
+            return True
+    return False
+
 def meta_for(st):
     """What the chip row says at the right edge, and in what color."""
     s = st["state"]
     if s == "open":
         return ["OPEN TIL " + st["hours"][1], "green"]
     if s == "tonight":
+        if scream_early(st):
+            return ["SCREAM EARLY", ORANGE]
         return ["GATES " + st["hours"][0], ORANGE]
     if s == "countdown":
         return ["NEXT " + st["date"], PURPLE]
@@ -554,7 +583,10 @@ def tonight(c, ctx):
     if st["state"] == "open":
         word, sub = "OPEN NOW", "GATES OPEN TIL " + st["hours"][1]
     elif st["state"] == "tonight":
-        word, sub = "TONIGHT", "GATES OPEN AT " + st["hours"][0]
+        if scream_early(st):
+            word, sub = "SCREAM EARLY", "GENERAL GATES AT " + st["hours"][0]
+        else:
+            word, sub = "TONIGHT", "GATES OPEN AT " + st["hours"][0]
     elif st["state"] == "countdown":
         word = str(st["days"]) + (" NIGHT" if st["days"] == 1 else " NIGHTS")
         sub = "TIL OPENING " + st["date"] + " " + st["hours"][0] + "-" + st["hours"][1]
@@ -588,8 +620,19 @@ def house_cards(c, ctx, label, lo, hi, which):
         return
 
     page = st["houses"][lo:hi]
-    if st["state"] == "open" and len(page) > 0:
-        chip_row(c, label, ORANGE, which + "  TIL " + st["hours"][1], DIM)
+    # Show the grid whenever this page actually has a real wait to show -
+    # which happens before the general "open" state during Scream Early,
+    # when only a few houses are posting. A page with none yet (or a page
+    # that's still all Scream Early no-shows) falls through to the messaging
+    # below instead of a grid full of dashes.
+    has_data = False
+    for row in page:
+        if row[0] != None:
+            has_data = True
+            break
+    if has_data:
+        meta = which + ("  TIL " + st["hours"][1] if st["state"] == "open" else "  SCREAM EARLY")
+        chip_row(c, label, ORANGE, meta, DIM)
         colw = (RZ_R - EDGEL + 1 - GAP * (COLS - 1)) // COLS
         c.vline(EDGEL + colw + GAP // 2 - 1, 9, 22, STRUCT)
         for i in range(len(page)):
@@ -609,7 +652,13 @@ def house_cards(c, ctx, label, lo, hi, which):
         sub = "CHECK BACK SHORTLY" if lo == 0 else "SEE PAGE 1"
         head_color = ORANGE
     elif st["state"] == "tonight":
-        head, sub, head_color = "GATES OPEN AT " + st["hours"][0], "WAITS POST AT OPENING", ORANGE
+        if scream_early(st):
+            # The active Scream Early houses sort to the top and land on
+            # page 1, so reaching this branch during Scream Early means
+            # this specific page (2) just doesn't have one of them yet.
+            head, sub, head_color = "SCREAM EARLY UNDERWAY", "SEE PAGE 1 FOR WAITS", ORANGE
+        else:
+            head, sub, head_color = "GATES OPEN AT " + st["hours"][0], "WAITS POST AT OPENING", ORANGE
     elif st["state"] == "countdown":
         head, sub, head_color = "NO EVENT TONIGHT", "NEXT NIGHT " + st["date"], PURPLE
     else:
