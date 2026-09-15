@@ -10,7 +10,7 @@ entry: app.star
 width: 128
 height: 32
 # Standings move when games become Final; 5 min keeps the combo number current.
-refresh: 300
+refresh: 3600
 
 pages: [main]
 
