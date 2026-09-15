@@ -26,7 +26,7 @@
 # number one row under the title with eight dead rows beneath it and left
 # "DAYS" floating two rows low. See HERO_FONTS and ink_height().
 #
-# Forty themes share one 24x24 sprite slot; see ART and draw_theme().
+# Forty-nine themes share one 24x24 sprite slot; see ART and draw_theme().
 #
 # The three lamps under the date are the anniversary at a glance, as a strict
 # cascade: orange for the whole of the event's month, green once the
@@ -196,7 +196,7 @@ def _hexval(ch):
 #
 # The bundled icon set is 8x8 one-bit shapes -- its ring is an outline circle,
 # a washer rather than a wedding ring -- and has nothing for most of these, so
-# all forty themes are drawn here instead, in colour and to one style.
+# all forty-nine themes are drawn here instead, in colour and to one style.
 #
 # They were authored with a small generator that draws into a 24x24 char grid
 # from primitives -- discs, swept polygons, half-ellipse domes -- rather than
@@ -644,122 +644,95 @@ PAGODA = [
 
 PAGODA_LEGEND = {"B": "#E8D8B0", "D": "#8B5A2B", "R": "#C0392B"}
 
-HEART = [
+CASTLE = [
+    "...........SRR..........",
+    "..........PPPP..........",
+    "...B......PPPP......B...",
+    "...B.....PPPPPP.....B...",
+    "..BBB...PPPPPPPP...BBB..",
+    "..BBB...PPPPPPPP...BBB..",
+    ".BBBBB..DSSSSSSS..BBBBB.",
+    ".BBBBB..DSSSSSSS..BBBBB.",
+    "BBBBBBB.DSSSSSSS.BBBBBBB",
+    ".DSSSS..DSKSSKSS..DSSSS.",
+    ".DSSSS..DSKSSKSS..DSSSS.",
+    ".DSSSS..DSKSSKSS..DSSSS.",
+    ".DSKSSSSDSSSSSSSS.DSKSS.",
+    ".DSKSSSSDSSSSSSSSSDSKSS.",
+    ".DSKSSSSDSSSSSSSSSDSKSS.",
+    ".DSSSSSSDSSSSSSSSSDSSSS.",
+    ".DSSSSSSDSSSKSSSSSDSSSS.",
+    ".DSSSSSSDSSKKSSSSSDSSSS.",
+    ".DSSSSSSDSKKKKSSSSDSSSS.",
+    ".DSSSSSSDSKKKKSSSSDSSSS.",
+    ".DSSSSSSDSKKKKSSSSDSSSS.",
+    ".DSSSSSSDSKKKKSSSSDSSSS.",
+    ".DSSSSSSDSKKKKSSSSDSSSS.",
+    "........................",
+]
+
+CASTLE_LEGEND = {"B": "#4EA8FF", "D": "#9A9AB8", "K": "#22242E",
+                 "P": "#E85AA8", "R": "#E0243C", "S": "#D8DCE8"}
+
+FIREWORKS = [
+    "........................",
+    "...................W....",
+    "........Y.......W.....W.",
+    "...................P....",
+    "...Y....R....Y....P.P...",
+    "....R...R...R..W.P.W.P.W",
+    ".....R..R..R......P.P...",
+    "......R.R.R........P....",
+    ".......R.R......W.....W.",
+    ".Y.RRRR.Y.RRRR.Y...W....",
+    ".......R.R..............",
+    "......R.R.R.............",
+    ".....R..R..R.......W....",
+    "....R...R...R...W.....W.",
+    "...Y....R....Y.....C....",
+    "..................C.C...",
+    "........Y......W.C.W.C.W",
+    "..................C.C...",
+    "........Y..........C....",
+    "........Y.......W.....W.",
+    "...................W....",
+    "........Y...............",
+    "........Y...............",
+    "........................",
+]
+
+FIREWORKS_LEGEND = {"C": "#25F8CB", "P": "#E85AA8", "R": "#E0243C",
+                    "W": "#F2F2F8", "Y": "#FFD24A"}
+
+TENT = [
     "........................",
     "........................",
-    "........................",
-    "........................",
-    ".......RRR....RRR.......",
-    ".....RRRRRRRRRRRRRR.....",
-    ".....RRRRRRRRRRRRRR.....",
-    "....RRRRRRRRRRRRRRRR....",
-    "....RRRRRRRRRRRRRRRR....",
-    "...RRRRRRRRRRRRRRRRRR...",
-    "....RRRRRRRRRRRRRRRR....",
-    "....RRRRRRRRRRRRRRRR....",
-    ".....RRRRRRRRRRRRRR.....",
-    "......RRRRRRRRRRRR......",
-    ".......RRRRRRRRRRR......",
-    "........RRRRRRRRR.......",
-    "........RRRRRRRR........",
-    ".........RRRRRRR........",
-    "..........RRRRR.........",
-    "..........RRRR..........",
-    "...........RRR..........",
-    "........................",
+    "..........L...L.........",
+    "...........L.L..........",
+    "............L...........",
+    "...........ODD..........",
+    "...........ODD..........",
+    "..........OOODD.........",
+    ".........OOOODDD........",
+    ".........OOOODDD........",
+    "........OOOIOIDDD.......",
+    ".......OOOOIOIDDDD......",
+    "......OOOOIIOIIDDDD.....",
+    "......OOOOIIOIIDDDD.....",
+    ".....OOOOOIIOIIDDDDD....",
+    "....OOOOOIIIOIIIDDDDD...",
+    "....OOOOOIIIOIIIDDDDD...",
+    "...OOOOOOIIIOIIIDDDDDD..",
+    "..OOOOOOIIIIOIIIIDDDDDD.",
+    "..GOOGOOIIIIOIIIIDDDDGD.",
+    "GGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGG",
     "........................",
     "........................",
 ]
 
-HEART_LEGEND = {"R": "#E0243C"}
-
-COUPLE_MF = [
-    "........................",
-    "........................",
-    "........................",
-    "..HHHHHHHHH.....KKK.....",
-    "..HHHHHHHHH....KKKKK....",
-    "..HKKKKKKKH...KKKKKKK...",
-    "..HKKKKKKKH...KKKKKKK...",
-    "..HKKKKKKKH...KKKKKKK...",
-    "..H.KKKKK.H....KKKKK....",
-    "..H..KKK..H.....KKK.....",
-    "..H..KKK..H.....KKK.....",
-    ".....KKK........KKK.....",
-    "...PPPPPPP....BBBBBBB...",
-    "..PPPPPPPPP..BBBBBBBBB..",
-    "..PPPPPPPPP..BBBBBBBBB..",
-    ".PPPPPPPPPPPBBBBBBBBBBB.",
-    ".PPPPPPPPPPPBBBBBBBBBBB.",
-    ".PPPPPPPPPPPBBBBBBBBBBB.",
-    ".PPPPPPPPPPPBBBBBBBBBBB.",
-    ".PPPPPPPPPPPBBBBBBBBBBB.",
-    ".PPPPPPPPPPPBBBBBBBBBBB.",
-    "........................",
-    "........................",
-    "........................",
-]
-
-COUPLE_MF_LEGEND = {"B": "#4EA8FF", "H": "#5A3A22", "K": "#F2C79A",
-                     "P": "#E85AA8"}
-
-COUPLE_MM = [
-    "........................",
-    "........................",
-    "........................",
-    ".....KKK........KKK.....",
-    "....KKKKK......KKKKK....",
-    "...KKKKKKK....KKKKKKK...",
-    "...KKKKKKK....KKKKKKK...",
-    "...KKKKKKK....KKKKKKK...",
-    "....KKKKK......KKKKK....",
-    ".....KKK........KKK.....",
-    ".....KKK........KKK.....",
-    ".....KKK........KKK.....",
-    "...BBBBBBB....BBBBBBB...",
-    "..BBBBBBBBB..BBBBBBBBB..",
-    "..BBBBBBBBB..BBBBBBBBB..",
-    ".BBBBBBBBBBBBBBBBBBBBBB.",
-    ".BBBBBBBBBBBBBBBBBBBBBB.",
-    ".BBBBBBBBBBBBBBBBBBBBBB.",
-    ".BBBBBBBBBBBBBBBBBBBBBB.",
-    ".BBBBBBBBBBBBBBBBBBBBBB.",
-    ".BBBBBBBBBBBBBBBBBBBBBB.",
-    "........................",
-    "........................",
-    "........................",
-]
-
-COUPLE_MM_LEGEND = {"B": "#4EA8FF", "K": "#F2C79A"}
-
-COUPLE_FF = [
-    "........................",
-    "........................",
-    "........................",
-    "..HHHHHHHHH..HHHHHHHHH..",
-    "..HHHHHHHHH..HHHHHHHHH..",
-    "..HKKKKKKKH..HKKKKKKKH..",
-    "..HKKKKKKKH..HKKKKKKKH..",
-    "..HKKKKKKKH..HKKKKKKKH..",
-    "..H.KKKKK.H..H.KKKKK.H..",
-    "..H..KKK..H..H..KKK..H..",
-    "..H..KKK..H..H..KKK..H..",
-    ".....KKK........KKK.....",
-    "...PPPPPPP....PPPPPPP...",
-    "..PPPPPPPPP..PPPPPPPPP..",
-    "..PPPPPPPPP..PPPPPPPPP..",
-    ".PPPPPPPPPPPPPPPPPPPPPP.",
-    ".PPPPPPPPPPPPPPPPPPPPPP.",
-    ".PPPPPPPPPPPPPPPPPPPPPP.",
-    ".PPPPPPPPPPPPPPPPPPPPPP.",
-    ".PPPPPPPPPPPPPPPPPPPPPP.",
-    ".PPPPPPPPPPPPPPPPPPPPPP.",
-    "........................",
-    "........................",
-    "........................",
-]
-
-COUPLE_FF_LEGEND = {"H": "#5A3A22", "K": "#F2C79A", "P": "#E85AA8"}
+TENT_LEGEND = {"D": "#C8601A", "G": "#3FA34D", "I": "#FFD9A0", "L": "#8B5A2B",
+               "O": "#FF8A1E"}
 
 GIRL = [
     "........HHHHHHHHH.......",
@@ -994,64 +967,6 @@ GOLD = [
 ]
 
 GOLD_LEGEND = {"A": "#E0243C", "C": "#4EA8FF", "H": "#E0A81E", "M": "#FFD24A"}
-
-SILVER = [
-    "........................",
-    ".......AAAAA.CCCCC......",
-    ".......AAAAA.CCCCC......",
-    "........AAAACCCCC.......",
-    "........AAAACCCCC.......",
-    "........AAAACCCCC.......",
-    "........AAAACCCCC.......",
-    "........AAAACCCCC.......",
-    ".........AACCCCC........",
-    "...........MMM..........",
-    ".........MMMMMMM........",
-    "........MMMHHHMMM.......",
-    ".......MMHHHHHHHMM......",
-    ".......MMHHHHHHHMM......",
-    "......MMHHHHHHHHHMM.....",
-    "......MMHHHHHHHHHMM.....",
-    "......MMHHHHHHHHHMM.....",
-    ".......MMHHHHHHHMM......",
-    ".......MMHHHHHHHMM......",
-    "........MMMHHHMMM.......",
-    ".........MMMMMMM........",
-    "...........MMM..........",
-    "........................",
-    "........................",
-]
-
-SILVER_LEGEND = {"A": "#E0243C", "C": "#4EA8FF", "H": "#A8AEC0", "M": "#D8DCE8"}
-
-BRONZE = [
-    "........................",
-    ".......AAAAA.CCCCC......",
-    ".......AAAAA.CCCCC......",
-    "........AAAACCCCC.......",
-    "........AAAACCCCC.......",
-    "........AAAACCCCC.......",
-    "........AAAACCCCC.......",
-    "........AAAACCCCC.......",
-    ".........AACCCCC........",
-    "...........MMM..........",
-    ".........MMMMMMM........",
-    "........MMMHHHMMM.......",
-    ".......MMHHHHHHHMM......",
-    ".......MMHHHHHHHMM......",
-    "......MMHHHHHHHHHMM.....",
-    "......MMHHHHHHHHHMM.....",
-    "......MMHHHHHHHHHMM.....",
-    ".......MMHHHHHHHMM......",
-    ".......MMHHHHHHHMM......",
-    "........MMMHHHMMM.......",
-    ".........MMMMMMM........",
-    "...........MMM..........",
-    "........................",
-    "........................",
-]
-
-BRONZE_LEGEND = {"A": "#E0243C", "C": "#4EA8FF", "H": "#9C5F22", "M": "#CD7F32"}
 
 SOCCER = [
     "........................",
@@ -1343,79 +1258,461 @@ TROPHY = [
 
 TROPHY_LEGEND = {"H": "#8B5A2B", "M": "#FFD24A"}
 
-PODIUM = [
+# National flags. Each is a 24x15 band across the middle of the sprite slot,
+# one size for all of them so they line up as a set rather than each
+# taking its own real proportions. Black stripes are drawn in dark grey:
+# true black is an unlit LED, and Germany and the UAE would lose an edge.
+
+FLAG_CN = [
     "........................",
     "........................",
     "........................",
     "........................",
     "........................",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "RRRRRRRRYRRRRRRRRRRRRRRR",
+    "RRRRYRRRRRRRRRRRRRRRRRRR",
+    "RRRRYRRRRYRRRRRRRRRRRRRR",
+    "RRYYYYYRRRRRRRRRRRRRRRRR",
+    "RRRYYYRRRYRRRRRRRRRRRRRR",
+    "RRRYRYRRRRRRRRRRRRRRRRRR",
+    "RRYRRRYRYRRRRRRRRRRRRRRR",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
     "........................",
-    "........WWWWWWWW........",
-    "........MMMMMMMM........",
-    "........MMMMMMMM........",
-    "........MMMMMMMM........",
-    "........MMMMMMMM........",
-    "........MMMMMMMM........",
-    ".WWWWWWWMMMMMMMM........",
-    ".SSSSSSSMMMMMMMM........",
-    ".SSSSSSSMMMMMMMM........",
-    ".SSSSSSSMMMMMMMMWWWWWWW.",
-    ".SSSSSSSMMMMMMMMCCCCCCC.",
-    ".SSSSSSSMMMMMMMMCCCCCCC.",
-    ".SSSSSSSMMMMMMMMCCCCCCC.",
-    ".SSSSSSSMMMMMMMMCCCCCCC.",
-    ".SSSSSSSMMMMMMMMCCCCCCC.",
-    ".SSSSSSSMMMMMMMMCCCCCCC.",
-    ".SSSSSSSMMMMMMMMCCCCCCC.",
+    "........................",
+    "........................",
     "........................",
 ]
 
-PODIUM_LEGEND = {"C": "#CD7F32", "M": "#FFD24A", "S": "#D8DCE8", "W": "#FFFFFF"}
+FLAG_CN_LEGEND = {"R": "#E0243C", "Y": "#FFD24A"}
+
+FLAG_US = [
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "BBBBBBBBBBBRRRRRRRRRRRRR",
+    "BWBWBWBWBWBWWWWWWWWWWWWW",
+    "BBBBBBBBBBBRRRRRRRRRRRRR",
+    "BWBWBWBWBWBWWWWWWWWWWWWW",
+    "BBBBBBBBBBBRRRRRRRRRRRRR",
+    "BWBWBWBWBWBWWWWWWWWWWWWW",
+    "BBBBBBBBBBBRRRRRRRRRRRRR",
+    "BBBBBBBBBBBWWWWWWWWWWWWW",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "WWWWWWWWWWWWWWWWWWWWWWWW",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "WWWWWWWWWWWWWWWWWWWWWWWW",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "WWWWWWWWWWWWWWWWWWWWWWWW",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+]
+
+FLAG_US_LEGEND = {"B": "#2A56C6", "R": "#E0243C", "W": "#F2F2F8"}
+
+FLAG_RU = [
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "WWWWWWWWWWWWWWWWWWWWWWWW",
+    "WWWWWWWWWWWWWWWWWWWWWWWW",
+    "WWWWWWWWWWWWWWWWWWWWWWWW",
+    "WWWWWWWWWWWWWWWWWWWWWWWW",
+    "WWWWWWWWWWWWWWWWWWWWWWWW",
+    "BBBBBBBBBBBBBBBBBBBBBBBB",
+    "BBBBBBBBBBBBBBBBBBBBBBBB",
+    "BBBBBBBBBBBBBBBBBBBBBBBB",
+    "BBBBBBBBBBBBBBBBBBBBBBBB",
+    "BBBBBBBBBBBBBBBBBBBBBBBB",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+]
+
+FLAG_RU_LEGEND = {"B": "#2A56C6", "R": "#E0243C", "W": "#F2F2F8"}
+
+FLAG_UK = [
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "RRWWBBBBBWRRRWBBBBBBWWRR",
+    "WRRRWBBBBWRRRWBBBBBWRRRW",
+    "BWWRRWWBBWRRRWBBBWWRRWWB",
+    "BBBWRRRWWWRRRWBWWRRRWBBB",
+    "BBBBWWRRWWRRRWWWRRWWBBBB",
+    "WWWWWWWWWWRRRWWWWWWWWWWW",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "WWWWWWWWWWRRRWWWWWWWWWWW",
+    "BBBBWWRRWWRRRWWWRRWWBBBB",
+    "BBBWRRRWWWRRRWBWWRRRWBBB",
+    "BWWRRWWBBWRRRWBBBWWRRWWB",
+    "WRRRWBBBBWRRRWBBBBBWRRRW",
+    "RRWWBBBBBWRRRWBBBBBBWWRR",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+]
+
+FLAG_UK_LEGEND = {"B": "#2A56C6", "R": "#E0243C", "W": "#F2F2F8"}
+
+FLAG_FR = [
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "BBBBBBBBWWWWWWWWRRRRRRRR",
+    "BBBBBBBBWWWWWWWWRRRRRRRR",
+    "BBBBBBBBWWWWWWWWRRRRRRRR",
+    "BBBBBBBBWWWWWWWWRRRRRRRR",
+    "BBBBBBBBWWWWWWWWRRRRRRRR",
+    "BBBBBBBBWWWWWWWWRRRRRRRR",
+    "BBBBBBBBWWWWWWWWRRRRRRRR",
+    "BBBBBBBBWWWWWWWWRRRRRRRR",
+    "BBBBBBBBWWWWWWWWRRRRRRRR",
+    "BBBBBBBBWWWWWWWWRRRRRRRR",
+    "BBBBBBBBWWWWWWWWRRRRRRRR",
+    "BBBBBBBBWWWWWWWWRRRRRRRR",
+    "BBBBBBBBWWWWWWWWRRRRRRRR",
+    "BBBBBBBBWWWWWWWWRRRRRRRR",
+    "BBBBBBBBWWWWWWWWRRRRRRRR",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+]
+
+FLAG_FR_LEGEND = {"B": "#2A56C6", "R": "#E0243C", "W": "#F2F2F8"}
+
+FLAG_DE = [
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "KKKKKKKKKKKKKKKKKKKKKKKK",
+    "KKKKKKKKKKKKKKKKKKKKKKKK",
+    "KKKKKKKKKKKKKKKKKKKKKKKK",
+    "KKKKKKKKKKKKKKKKKKKKKKKK",
+    "KKKKKKKKKKKKKKKKKKKKKKKK",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "RRRRRRRRRRRRRRRRRRRRRRRR",
+    "YYYYYYYYYYYYYYYYYYYYYYYY",
+    "YYYYYYYYYYYYYYYYYYYYYYYY",
+    "YYYYYYYYYYYYYYYYYYYYYYYY",
+    "YYYYYYYYYYYYYYYYYYYYYYYY",
+    "YYYYYYYYYYYYYYYYYYYYYYYY",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+]
+
+FLAG_DE_LEGEND = {"K": "#4A4A55", "R": "#E0243C", "Y": "#FFD24A"}
+
+FLAG_JP = [
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "WWWWWWWWWWWWWWWWWWWWWWWW",
+    "WWWWWWWWWWWWWWWWWWWWWWWW",
+    "WWWWWWWWWWWWWWWWWWWWWWWW",
+    "WWWWWWWWWWRRRRWWWWWWWWWW",
+    "WWWWWWWWWRRRRRRWWWWWWWWW",
+    "WWWWWWWWRRRRRRRRWWWWWWWW",
+    "WWWWWWWWRRRRRRRRWWWWWWWW",
+    "WWWWWWWWRRRRRRRRWWWWWWWW",
+    "WWWWWWWWRRRRRRRRWWWWWWWW",
+    "WWWWWWWWRRRRRRRRWWWWWWWW",
+    "WWWWWWWWWRRRRRRWWWWWWWWW",
+    "WWWWWWWWWWRRRRWWWWWWWWWW",
+    "WWWWWWWWWWWWWWWWWWWWWWWW",
+    "WWWWWWWWWWWWWWWWWWWWWWWW",
+    "WWWWWWWWWWWWWWWWWWWWWWWW",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+]
+
+FLAG_JP_LEGEND = {"R": "#E0243C", "W": "#F2F2F8"}
+
+FLAG_BR = [
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "GGGGGGGGGGGYYGGGGGGGGGGG",
+    "GGGGGGGGGGYYYYGGGGGGGGGG",
+    "GGGGGGGGGYYYYYYGGGGGGGGG",
+    "GGGGGGGYYYYYYYYYYGGGGGGG",
+    "GGGGGGYYYYBBBBYYYYGGGGGG",
+    "GGGGGYYYYBBBBBBYYYYGGGGG",
+    "GGGYYYYYBBBBBBWBYYYYYGGG",
+    "GGYYYYYYBBWWWWBBYYYYYYGG",
+    "GGGYYYYYBWBBBBBBYYYYYGGG",
+    "GGGGGYYYYBBBBBBYYYYGGGGG",
+    "GGGGGGYYYYBBBBYYYYGGGGGG",
+    "GGGGGGGYYYYYYYYYYGGGGGGG",
+    "GGGGGGGGGYYYYYYGGGGGGGGG",
+    "GGGGGGGGGGYYYYGGGGGGGGGG",
+    "GGGGGGGGGGGYYGGGGGGGGGGG",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+]
+
+FLAG_BR_LEGEND = {"B": "#2A56C6", "G": "#1FA34A", "W": "#F2F2F8",
+                  "Y": "#FFD24A"}
+
+FLAG_IN = [
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "OOOOOOOOOOOOOOOOOOOOOOOO",
+    "OOOOOOOOOOOOOOOOOOOOOOOO",
+    "OOOOOOOOOOOOOOOOOOOOOOOO",
+    "OOOOOOOOOOOOOOOOOOOOOOOO",
+    "OOOOOOOOOOOOOOOOOOOOOOOO",
+    "WWWWWWWWWWWWWWWWWWWWWWWW",
+    "WWWWWWWWWWBBBWWWWWWWWWWW",
+    "WWWWWWWWWWBWBWWWWWWWWWWW",
+    "WWWWWWWWWWBBBWWWWWWWWWWW",
+    "WWWWWWWWWWWWWWWWWWWWWWWW",
+    "GGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGG",
+    "GGGGGGGGGGGGGGGGGGGGGGGG",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+]
+
+FLAG_IN_LEGEND = {"B": "#2A56C6", "G": "#1FA34A", "O": "#FF9933",
+                  "W": "#F2F2F8"}
+
+FLAG_IT = [
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "GGGGGGGGWWWWWWWWRRRRRRRR",
+    "GGGGGGGGWWWWWWWWRRRRRRRR",
+    "GGGGGGGGWWWWWWWWRRRRRRRR",
+    "GGGGGGGGWWWWWWWWRRRRRRRR",
+    "GGGGGGGGWWWWWWWWRRRRRRRR",
+    "GGGGGGGGWWWWWWWWRRRRRRRR",
+    "GGGGGGGGWWWWWWWWRRRRRRRR",
+    "GGGGGGGGWWWWWWWWRRRRRRRR",
+    "GGGGGGGGWWWWWWWWRRRRRRRR",
+    "GGGGGGGGWWWWWWWWRRRRRRRR",
+    "GGGGGGGGWWWWWWWWRRRRRRRR",
+    "GGGGGGGGWWWWWWWWRRRRRRRR",
+    "GGGGGGGGWWWWWWWWRRRRRRRR",
+    "GGGGGGGGWWWWWWWWRRRRRRRR",
+    "GGGGGGGGWWWWWWWWRRRRRRRR",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+]
+
+FLAG_IT_LEGEND = {"G": "#1FA34A", "R": "#E0243C", "W": "#F2F2F8"}
+
+FLAG_AE = [
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "RRRRRRGGGGGGGGGGGGGGGGGG",
+    "RRRRRRGGGGGGGGGGGGGGGGGG",
+    "RRRRRRGGGGGGGGGGGGGGGGGG",
+    "RRRRRRGGGGGGGGGGGGGGGGGG",
+    "RRRRRRGGGGGGGGGGGGGGGGGG",
+    "RRRRRRWWWWWWWWWWWWWWWWWW",
+    "RRRRRRWWWWWWWWWWWWWWWWWW",
+    "RRRRRRWWWWWWWWWWWWWWWWWW",
+    "RRRRRRWWWWWWWWWWWWWWWWWW",
+    "RRRRRRWWWWWWWWWWWWWWWWWW",
+    "RRRRRRKKKKKKKKKKKKKKKKKK",
+    "RRRRRRKKKKKKKKKKKKKKKKKK",
+    "RRRRRRKKKKKKKKKKKKKKKKKK",
+    "RRRRRRKKKKKKKKKKKKKKKKKK",
+    "RRRRRRKKKKKKKKKKKKKKKKKK",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+]
+
+FLAG_AE_LEGEND = {"G": "#1FA34A", "K": "#4A4A55", "R": "#E0243C",
+                  "W": "#F2F2F8"}
+
+FLAG_CA = [
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "RRRRRRWWWWWWWWWWWWRRRRRR",
+    "RRRRRRWWWWWWWWWWWWRRRRRR",
+    "RRRRRRWWWWWWWWWWWWRRRRRR",
+    "RRRRRRWWWWWRWWWWWWRRRRRR",
+    "RRRRRRWWWWRRRWWWWWRRRRRR",
+    "RRRRRRWWRWRRRWRWWWRRRRRR",
+    "RRRRRRWRRRRRRRRRWWRRRRRR",
+    "RRRRRRWWRRRRRRRWWWRRRRRR",
+    "RRRRRRWWWRRRRRWWWWRRRRRR",
+    "RRRRRRWWWWWRWWWWWWRRRRRR",
+    "RRRRRRWWWWWRWWWWWWRRRRRR",
+    "RRRRRRWWWWWWWWWWWWRRRRRR",
+    "RRRRRRWWWWWWWWWWWWRRRRRR",
+    "RRRRRRWWWWWWWWWWWWRRRRRR",
+    "RRRRRRWWWWWWWWWWWWRRRRRR",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+]
+
+FLAG_CA_LEGEND = {"R": "#E0243C", "W": "#F2F2F8"}
+
+FLAG_AU = [
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+    "RRWBWRWBBWRRBBBBBBWBBBBB",
+    "WRRWWRWBWRRWBBBBBWWWBBBB",
+    "WWWWWRWWWWWWBBBBBBWBBBBB",
+    "RRRRRRRRRRRRBBBBBBBBBBBB",
+    "WWWWWRWWWWWWBBBBBBBBBWBB",
+    "BBWRWRWRRWBBBBBWBBBBWWWB",
+    "WRRWWRWBWRRWBBWWWBBBBWBB",
+    "RRWBWRWBBWRRBBBWBBBBBBBB",
+    "BBBBBBBBBBBBBBBBBBBWBBBB",
+    "BBBBBBBBBBBBBBBBBBBBBBBB",
+    "BBBBBWBBBBBBBBBBBBBBBBBB",
+    "BBBBWWWBBBBBBBBBBBWBBBBB",
+    "BBBBBWBBBBBBBBBBBWWWBBBB",
+    "BBBBBBBBBBBBBBBBBBWBBBBB",
+    "BBBBBBBBBBBBBBBBBBBBBBBB",
+    "........................",
+    "........................",
+    "........................",
+    "........................",
+]
+
+FLAG_AU_LEGEND = {"B": "#2A56C6", "R": "#E0243C", "W": "#F2F2F8"}
 
 # Every theme the dropdown offers, as [art, legend]. A dict rather than a
-# chain of branches: fifteen themes is too many to read as elifs, and
+# chain of branches: nearly fifty themes is too many to read as elifs, and
 # norm_theme() can validate a saved value straight against the keys.
+#
+# Grouped by category in the same order as the dropdown. The phone shows a
+# flat list with no headers, so the grouping is carried by the order alone;
+# the labels themselves are unchanged, so saved settings still match.
 ART = {
+    # Life events
     "wedding": [RING, RING_LEGEND],
     "birthday": [CAKE, CAKE_LEGEND],
     "graduation": [CAP, CAP_LEGEND],
+    "girl": [GIRL, GIRL_LEGEND],
+    "boy": [BOY, BOY_LEGEND],
     "house": [HOUSE, HOUSE_LEGEND],
-    "car": [CAR, CAR_LEGEND],
-    "bicycle": [BICYCLE, BICYCLE_LEGEND],
-    "yacht": [YACHT, YACHT_LEGEND],
+    "fireworks": [FIREWORKS, FIREWORKS_LEGEND],
+
+    # Travel
     "departure": [DEPART, DEPART_LEGEND],
     "arrival": [ARRIVE, ARRIVE_LEGEND],
-    "tree": [TREE, TREE_LEGEND],
-    "flower": [FLOWER, FLOWER_LEGEND],
+    "car": [CAR, CAR_LEGEND],
+    "yacht": [YACHT, YACHT_LEGEND],
+    "helicopter": [HELICOPTER, HELICOPTER_LEGEND],
+
+    # Places
     "beach": [BEACH, BEACH_LEGEND],
     "mountains": [MOUNTAINS, MOUNTAINS_LEGEND],
     "torii gate": [TORII, TORII_LEGEND],
     "pagoda": [PAGODA, PAGODA_LEGEND],
-    "heart": [HEART, HEART_LEGEND],
-    "couple": [COUPLE_MF, COUPLE_MF_LEGEND],
-    "couple blue": [COUPLE_MM, COUPLE_MM_LEGEND],
-    "couple pink": [COUPLE_FF, COUPLE_FF_LEGEND],
-    "girl": [GIRL, GIRL_LEGEND],
-    "boy": [BOY, BOY_LEGEND],
+    "castle": [CASTLE, CASTLE_LEGEND],
+
+    # Outdoors
+    "tree": [TREE, TREE_LEGEND],
+    "flower": [FLOWER, FLOWER_LEGEND],
     "campfire": [CAMPFIRE, CAMPFIRE_LEGEND],
-    "helicopter": [HELICOPTER, HELICOPTER_LEGEND],
-    "paraglider": [PARAGLIDER, PARAGLIDER_LEGEND],
+    "tent": [TENT, TENT_LEGEND],
     "fishing": [FISHING, FISHING_LEGEND],
-    "running": [RUNNER, RUNNER_LEGEND],
+    "paraglider": [PARAGLIDER, PARAGLIDER_LEGEND],
+    "bicycle": [BICYCLE, BICYCLE_LEGEND],
+
+    # Awards
     "gold medal": [GOLD, GOLD_LEGEND],
-    "silver medal": [SILVER, SILVER_LEGEND],
-    "bronze medal": [BRONZE, BRONZE_LEGEND],
+    "trophy": [TROPHY, TROPHY_LEGEND],
+
+    # Sports
+    "running": [RUNNER, RUNNER_LEGEND],
     "soccer": [SOCCER, SOCCER_LEGEND],
     "football": [FOOTBALL, FOOTBALL_LEGEND],
     "basketball": [BASKETBALL, BASKETBALL_LEGEND],
-    "badminton": [BADMINTON, BADMINTON_LEGEND],
     "volleyball": [VOLLEYBALL, VOLLEYBALL_LEGEND],
+    "badminton": [BADMINTON, BADMINTON_LEGEND],
     "hockey": [HOCKEY, HOCKEY_LEGEND],
     "skiing": [SKIING, SKIING_LEGEND],
-    "chess": [CHESS, CHESS_LEGEND],
     "golf": [GOLF, GOLF_LEGEND],
-    "trophy": [TROPHY, TROPHY_LEGEND],
-    "podium": [PODIUM, PODIUM_LEGEND],
+    "chess": [CHESS, CHESS_LEGEND],
+
+    # Flags
+    "china": [FLAG_CN, FLAG_CN_LEGEND],
+    "usa": [FLAG_US, FLAG_US_LEGEND],
+    "russia": [FLAG_RU, FLAG_RU_LEGEND],
+    "uk": [FLAG_UK, FLAG_UK_LEGEND],
+    "france": [FLAG_FR, FLAG_FR_LEGEND],
+    "germany": [FLAG_DE, FLAG_DE_LEGEND],
+    "japan": [FLAG_JP, FLAG_JP_LEGEND],
+    "brazil": [FLAG_BR, FLAG_BR_LEGEND],
+    "india": [FLAG_IN, FLAG_IN_LEGEND],
+    "italy": [FLAG_IT, FLAG_IT_LEGEND],
+    "uae": [FLAG_AE, FLAG_AE_LEGEND],
+    "canada": [FLAG_CA, FLAG_CA_LEGEND],
+    "australia": [FLAG_AU, FLAG_AU_LEGEND],
 }
 
 SCALE = 1
@@ -1521,16 +1818,23 @@ def fit(c, text, fonts, maxw):
 
 
 # The colour dropdowns' choices, lowercased, onto the panel's named palette.
-# Six hues that stay distinct on the LED -- orange, cyan, magenta and the rest
-# read as neighbours of these across a room, and four colour settings over a
-# long list was too many combinations to choose between.
+# Nine chosen by the app's owner, in dropdown order: red, orange, yellow,
+# green, cyan, blue, purple, pink, white.
+#
+# They are used as given, with no brightening, so their luminance against the
+# near-black ground is worth knowing when picking one. Pink (#FF0097) is the
+# dimmest at 93, then red at 99; the rest sit between 169 and 249. All clear
+# 70, below which text starts to disappear on the panel.
 COLORS = {
-    "red": "#FF0000",
-    "yellow": "#FFDC50",
-    "green": "#00DC46",
-    "blue": "#005AFF",
-    "purple": "#7521F9",
-    "pink": "#FF69B4",
+    "red": "#FF2121",
+    "orange": "#F2BE45",
+    "yellow": "#FFF143",
+    "green": "#AFDD22",
+    "cyan": "#25F8CB",
+    "blue": "#44CEF6",
+    "purple": "#CCA4E3",
+    "pink": "#FF0097",
+    "white": "#F2FDFF",
 }
 
 
