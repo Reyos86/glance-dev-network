@@ -1,13 +1,13 @@
 # Scholar Citations for a Glance SCROLL panel (192x32).
 #
 # DESIGN. Two levels, top and bottom. The top level says who: the
-# researcher's name in white, and today's date in a Scholar-blue pill at the
-# right. The bottom level says how much they are cited:
+# researcher's name in white, and today's date in a pill of the chosen
+# highlight colour at the right. The bottom level says how much they are cited:
 # a bar chart of citations per year with no year or axis labels, the current
-# year's bar in Scholar blue against light gray past years. To the right of
-# the chart sit four numbers - total citations, h-index and i10-index in white,
-# and this year's citations in the same blue as its bar - and under them this
-# year compared
+# year's bar in the highlight colour against light gray past years. To the right
+# of the chart sit four numbers - total citations, h-index and i10-index in
+# white, and this year's citations in the same colour as its bar - and under
+# them this year compared
 # with last year, green when ahead and red when behind. With no API key the
 # panel shows a sample profile. Every failure gets a two-line card:
 # what, and what to do.
@@ -19,12 +19,32 @@ TTL = 86400               # one search a day; refresh: is hourly only so the dat
 INK = "#F4F7FF"
 DIM = "#6E7A94"
 PAST = "#B4B8C0"          # light gray: history stays quiet so this year's color leads
-NOW = "#4A8CFF"           # Scholar blue: this year's bar, this year's count and the date pill
 TOTALS = "#FFFFFF"        # total citations, h-index and i10: white, the resting color for numbers
 GREEN = "#42FF78"
 RED = "#FF4D5E"
 AMBER = "#F0B44D"
 AXIS = "#3C4658"
+
+# The highlight dropdown's choices, lowercased. One colour marks everything that
+# is "now": this year's bar, this year's count and the date pill behind today's
+# date. Nine chosen by the app's owner, in dropdown order.
+COLORS = {
+    "red": "#FF2121",
+    "orange": "#F2BE45",
+    "yellow": "#FFF143",
+    "green": "#AFDD22",
+    "cyan": "#25F8CB",
+    "blue": "#44CEF6",
+    "purple": "#CCA4E3",
+    "pink": "#FF0097",
+    "white": "#F2FDFF",
+}
+DEFAULT_COLOR = "blue"
+
+# The date inside the pill is black, except on the two darkest highlights
+# (luminance 93-99 against the others' 169-249), where black text on the pill
+# is too close to the pill itself and white reads instead.
+PILL_WHITE_TEXT = ["red", "pink"]
 
 # ---- geometry ----------------------------------------------------------------
 # 6 px clear at both outer edges (x 6..185). Top level y 0..6; bottom level
@@ -235,18 +255,25 @@ def series(graph, year):
     return [[y, counts.get(y, 0)] for y in range(first, year + 1)]
 
 # ---- drawing -------------------------------------------------------------------
-def top_level(c, name, datestr):
-    """Name on the left; today's date in a pill of this year's color at the
+def highlight(ctx):
+    """[pill colour, pill text colour] from the highlight dropdown."""
+    name = str(ctx.inputs.get("color", "Blue")).strip().lower()
+    if name not in COLORS:
+        name = DEFAULT_COLOR
+    return [COLORS[name], "white" if name in PILL_WHITE_TEXT else "black"]
+
+def top_level(c, name, datestr, hl):
+    """Name on the left; today's date in a pill of the highlight colour at the
     right edge."""
     w = c.text_width(datestr, "4x5") + 4
-    c.badge(datestr, EDGER - w + 1, 0, color = "black", bg = NOW, font = "4x5")
+    c.badge(datestr, EDGER - w + 1, 0, color = hl[1], bg = hl[0], font = "4x5")
     right = EDGER - w - 3
     room = right - EDGEL + 1
     ft = fit(c, name.upper(), ["5x7", "4x5"], room)
     c.text(ft[1], EDGEL, TOPY, font = ft[0], color = INK)
 
-def chart(c, rows, year, right):
-    """Bars for each year from x 6 to `right`, no labels; this year in blue.
+def chart(c, rows, year, right, now):
+    """Bars for each year from x 6 to `right`, no labels; this year in `now`.
     The tallest year fills the full height."""
     peak = 0
     for r in rows:
@@ -273,10 +300,10 @@ def chart(c, rows, year, right):
         h = (r[1] * hmax + peak - 1) // peak if r[1] > 0 else 0
         if h > 0:
             c.rect(x, CHART_BOT - h + 1, x + bw - 1, CHART_BOT,
-                   fill = NOW if r[0] == year else PAST)
+                   fill = now if r[0] == year else PAST)
         x += step
 
-def stats(c, p, rows, year):
+def stats(c, p, rows, year, now):
     """Four labelled numbers, laid out from the right edge. Returns the x
     where the stats begin so the chart can take the rest."""
     this = rows[len(rows) - 1][1] if len(rows) > 0 else 0
@@ -284,7 +311,7 @@ def stats(c, p, rows, year):
     cols = [["CITATIONS", commas(p["cites"]), TOTALS],
             ["H-IDX", commas(p["h"]), TOTALS],
             ["I10", commas(p["i10"]), TOTALS],
-            [str(year), commas(this), NOW]]
+            [str(year), commas(this), now]]
 
     # One value font for every profile (6x9), so the panel doesn't change size
     # as the numbers grow; only past the planned worst case does it step down.
@@ -323,11 +350,11 @@ def stats(c, p, rows, year):
     c.sprite(ARROW_UP if diff >= 0 else ARROW_DN, tx - 7, 27, color = col)
     return statx
 
-def draw(c, p, year, datestr):
+def draw(c, p, year, datestr, hl):
     rows = series(p["graph"], year)
-    top_level(c, p["name"], datestr)
-    statx = stats(c, p, rows, year)
-    chart(c, rows, year, statx - 7)
+    top_level(c, p["name"], datestr, hl)
+    statx = stats(c, p, rows, year, hl[0])
+    chart(c, rows, year, statx - 7, hl[0])
 
 GHOST = [3, 5, 8, 7, 11, 14, 18, 22, 16]
 
@@ -362,15 +389,16 @@ def profile(c, ctx):
     apikey = str(ctx.inputs.get("apikey", "")).strip()
     sid = scholar_id(ctx.inputs.get("scholarid", ""))
     dbg = str(ctx.inputs.get("_debugstate", "")).strip().lower()
+    hl = highlight(ctx)
 
     if dbg in CARDS:
         card(c, CARDS[dbg][0], CARDS[dbg][1], CARDS[dbg][2])
         return
     if dbg == "big":
-        draw(c, BIG, year, datestr)
+        draw(c, BIG, year, datestr, hl)
         return
     if apikey == "" or dbg == "demo":
-        draw(c, DEMO, year, datestr)
+        draw(c, DEMO, year, datestr, hl)
         return
     if sid == "":
         card(c, CARDS["noid"][0], CARDS["noid"][1], CARDS["noid"][2])
@@ -380,4 +408,4 @@ def profile(c, ctx):
         cd = CARDS[res[0]]
         card(c, cd[0], cd[1], cd[2])
         return
-    draw(c, res[1], year, datestr)
+    draw(c, res[1], year, datestr, hl)
