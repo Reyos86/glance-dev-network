@@ -81,7 +81,6 @@ inputs:
     default: Pink
     help: The colour of the title and day count.
     choices:
-      - Pink
       - Red
       - Orange
       - Yellow
@@ -89,6 +88,7 @@ inputs:
       - Cyan
       - Blue
       - Purple
+      - Pink
       - White
 
   - key: accent
@@ -98,7 +98,6 @@ inputs:
     default: Blue
     help: The edge rail down the left side.
     choices:
-      - Pink
       - Red
       - Orange
       - Yellow
@@ -106,4 +105,5 @@ inputs:
       - Cyan
       - Blue
       - Purple
+      - Pink
       - White
