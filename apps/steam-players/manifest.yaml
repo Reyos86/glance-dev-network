@@ -9,7 +9,7 @@ entry: app.star
 width: 192
 height: 32
 # GAMES lists every configured AppID at once; DETAIL rotates through them.
-refresh: 3600
+refresh: 1800
 pages: [games, detail]
 
 inputs:
