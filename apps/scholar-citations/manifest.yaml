@@ -3,7 +3,7 @@ id: scholar-citations
 version: 0.1.0
 name: Scholar Citations
 author: ShulinZhou
-description: One researcher's Google Scholar profile - their name and today's date over a citations-per-year bar chart, with total citations, h-index, i10-index, this year's citations and the change against last year. Enter your own SerpApi key and Scholar profile ID; shows a sample profile until a key is added.
+description: Show researcher's Google Scholar profile. Enter your own SerpApi key and Scholar profile ID.
 category: Education
 entry: app.star
 
@@ -33,3 +33,11 @@ inputs:
     label: Google Scholar profile ID
     default: ""
     help: The user= part of the profile address, like tyJLhv4AAAAJ. Pasting the whole profile link also works.
+
+  - key: color
+    type: choice
+    app_input_type: dropdown
+    label: Highlight color
+    default: Blue
+    help: Colors this year's bar, this year's citation count and the pill behind today's date.
+    choices: [Red, Orange, Yellow, Green, Cyan, Blue, Purple, Pink, White]
