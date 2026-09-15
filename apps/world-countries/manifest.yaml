@@ -12,7 +12,7 @@ height: 32
 
 # A new country every minute. Nothing is fetched, so a fast refresh costs no
 # data source anything; HOLD in app.star matches it.
-refresh: 60
+refresh: 600
 
 pages: [country]
 
