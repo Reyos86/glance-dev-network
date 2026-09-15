@@ -38,18 +38,23 @@ DIM = "#5E5E7A"          # the next date, and the cadence under it
 MID = "#9A9AB8"          # secondary rows
 STRUCT = "#1E2030"       # the unlit lamps
 
-# The two colour dropdowns, count and accent, share this list. Every entry is
-# bright enough to read on INK, so no pick can vanish into the ground.
+# The two colour dropdowns, count and accent, share this list: nine chosen by
+# the app's owner, the same set event-milestone uses, in dropdown order.
+#
+# They are used as given, with no brightening, so their luminance against INK
+# is worth knowing when picking one. Pink (#FF0097) is the dimmest at 93, then
+# red at 99; the rest sit between 169 and 249. All clear 70, below which text
+# starts to disappear on the panel.
 COLORS = {
-    "pink": "#E85AA8",
-    "red": "#FF3B3B",
-    "orange": "#FF8C00",
-    "yellow": "#FFD24A",
-    "green": "#39D98A",
-    "cyan": "#00DCDC",
-    "blue": "#4EA8FF",
-    "purple": "#A070FF",
-    "white": "#F2F2F8",
+    "red": "#FF2121",
+    "orange": "#F2BE45",
+    "yellow": "#FFF143",
+    "green": "#AFDD22",
+    "cyan": "#25F8CB",
+    "blue": "#44CEF6",
+    "purple": "#CCA4E3",
+    "pink": "#FF0097",
+    "white": "#F2FDFF",
 }
 
 PAD = 8                  # scroll safe zone: neighbours slide past the edges
