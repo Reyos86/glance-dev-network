@@ -1,14 +1,28 @@
-# DESIGN. User-approved three-zone SCROLL Studio composition: NFL identity
-# left, game status center, weather hero right. KC is a 40x26 majority
-# downsample of the official raster (white / Chiefs red / black). Other
-# marks remain 36x22. Black background, white values, cool blue weather
-# accents. Scores refresh each minute; weather is cached 15 minutes.
+# DESIGN. Night-kickoff scoreboard on SCROLL: logos on the left (untouched
+# marks, AT between them, turf-green city), amber LED clock in a dark board
+# at center, weather as the glowing hero on the right. Mood chrome follows
+# the forecast (sun/rain/snow) and flips green when the game is live.
 TEAMS = ["ARI", "ATL", "BAL", "BUF", "CAR", "CHI", "CIN", "CLE", "DAL", "DEN", "DET", "GB", "HOU", "IND", "JAX", "KC", "LAC", "LAR", "LV", "MIA", "MIN", "NE", "NO", "NYG", "NYJ", "PHI", "PIT", "SEA", "SF", "TB", "TEN", "WSH"]
 LOGOS = {'ARI': 'assets/ari.png', 'ATL': 'assets/atl.png', 'BAL': 'assets/bal.png', 'BUF': 'assets/buf.png', 'CAR': 'assets/car.png', 'CHI': 'assets/chi.png', 'CIN': 'assets/cin.png', 'CLE': 'assets/cle.png', 'DAL': 'assets/dal.png', 'DEN': 'assets/den.png', 'DET': 'assets/det.png', 'GB': 'assets/gb.png', 'HOU': 'assets/hou.png', 'IND': 'assets/ind.png', 'JAX': 'assets/jax.png', 'KC': 'assets/kc.png', 'LAC': 'assets/lac.png', 'LAR': 'assets/lar.png', 'LV': 'assets/lv.png', 'MIA': 'assets/mia.png', 'MIN': 'assets/min.png', 'NE': 'assets/ne.png', 'NO': 'assets/no.png', 'NYG': 'assets/nyg.png', 'NYJ': 'assets/nyj.png', 'PHI': 'assets/phi.png', 'PIT': 'assets/pit.png', 'SEA': 'assets/sea.png', 'SF': 'assets/sf.png', 'TB': 'assets/tb.png', 'TEN': 'assets/ten.png', 'WSH': 'assets/wsh.png'}
-WHITE = "#F2F6FF"
-MUTED = "#A7B4C8"
-BLUE = "#65CBFF"
-AMBER = "#FFD166"
+LOGO_WH = {"ARI": [28, 26], "ATL": [26, 26], "BAL": [39, 19], "BUF": [37, 25], "CAR": [36, 23], "CHI": [26, 26], "CIN": [35, 26], "CLE": [33, 26], "DAL": [36, 26], "DEN": [40, 23], "DET": [32, 26], "GB": [37, 24], "HOU": [28, 26], "IND": [23, 24], "JAX": [34, 26], "KC": [40, 26], "LAC": [38, 20], "LAR": [33, 24], "LV": [32, 26], "MIA": [32, 24], "MIN": [21, 26], "NE": [40, 20], "NO": [22, 24], "NYG": [31, 24], "NYJ": [38, 23], "PHI": [37, 26], "PIT": [24, 24], "SEA": [40, 23], "SF": [40, 25], "TB": [29, 25], "TEN": [24, 24], "WSH": [38, 21]}
+# Equal 40x26 slots with a 9px gutter so "AT" (8px at 4x5) sits between marks.
+SLOT_X = [2, 51]
+SLOT_W = 40
+SLOT_Y = 1
+SLOT_H = 26
+AT_W = 8
+AT_H = 5
+WHITE = "#F4F7FF"
+MUTED = "#8A9BB0"
+BLUE = "#78DCFF"
+AMBER = "#FFBF00"
+NIGHT = "#05070C"
+SKY = "#10182A"
+TURF = "#0C2218"
+TURF_INK = "#9EE0B8"
+BOARD = "#10141C"
+BOARD_EDGE = "#2C3648"
+LIVE = "#00DC46"
 
 def obj(v):
     return v if type(v) == "dict" else {}
@@ -31,6 +45,60 @@ def get(url, params = {}, ttl = 60):
     if r["status_code"] != 200:
         return {}
     return obj(r.get("json"))
+
+# site.api.espn.com is Akamai-blocked from many networks. The website's
+# site.web.api host returns the same scoreboard JSON. Date ranges 400 there,
+# so callers walk week/year/seasontype instead. cdn.espn.com is the fallback.
+SCOREBOARD = "https://site.web.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard"
+SCOREBOARD_CDN = "https://cdn.espn.com/core/nfl/scoreboard"
+
+def event_list(feed):
+    items = feed.get("events")
+    return items if type(items) == "list" else None
+
+def scoreboard(params, use_cdn):
+    if not use_cdn:
+        return get(SCOREBOARD, params, 60)
+    q = {"xhr": "1"}
+    for k in params:
+        q[k] = params[k]
+    return obj(obj(get(SCOREBOARD_CDN, q, 60).get("content")).get("sbData"))
+
+def nfl_events():
+    feed = scoreboard({}, False)
+    use_cdn = event_list(feed) == None
+    if use_cdn:
+        feed = scoreboard({}, True)
+    events = event_list(feed)
+    if events == None:
+        return None
+    seen = {}
+    out = []
+    for e in events:
+        eid = str(obj(e).get("id", ""))
+        if eid:
+            seen[eid] = True
+        out.append(e)
+    week = number(obj(feed.get("week")).get("number"))
+    year = number(obj(feed.get("season")).get("year"))
+    stype = number(obj(feed.get("season")).get("type"), 2)
+    if week == None:
+        return out
+    # Current week plus the next two covers the 21-day follow window.
+    for extra in [1, 2]:
+        more = event_list(scoreboard({
+            "week": int(week + extra),
+            "year": int(year) if year != None else 0,
+            "seasontype": int(stype),
+        }, use_cdn))
+        for e in seq(more):
+            eid = str(obj(e).get("id", ""))
+            if eid and eid in seen:
+                continue
+            if eid:
+                seen[eid] = True
+            out.append(e)
+    return out
 
 # Gregorian conversion supports season boundaries without platform date parsing.
 def days(y, m, d):
@@ -107,10 +175,25 @@ def fit(c, s, x, y, width, fonts = ["5x7", "4x5"], col = WHITE):
                 break
     c.text(s, x, y, font = font, color = col)
 
+def fit_center(c, s, cx, y, width, fonts = ["4x5"], col = WHITE):
+    s = str(s).upper()
+    font = fonts[-1]
+    for f in fonts:
+        if c.text_width(s, f) <= width:
+            font = f
+            break
+    if c.text_width(s, font) > width:
+        for n in range(len(s), -1, -1):
+            if c.text_width(s[:n] + "..", font) <= width:
+                s = s[:n] + ".."
+                break
+    c.text(s, cx, y, font = font, color = col, align = "center")
+
 def message(c, title, sub, good = False):
-    c.fill("black")
-    c.rect(10, 5, 12, 26, fill = "#56DC9B" if good else AMBER)
-    fit(c, "NFL / GAME DAY WEATHER", 19, 1, 162, ["4x5"], MUTED)
+    c.gradient_rect(0, 0, 191, 31, NIGHT, SKY, horizontal = False)
+    rail = LIVE if good else AMBER
+    c.rect(10, 4, 13, 27, fill = rail)
+    fit(c, "GAME DAY WEATHER", 19, 1, 162, ["4x5"], MUTED)
     fit(c, title, 19, 10, 162, ["10x16", "6x8", "5x7"])
     fit(c, sub, 19, 26, 162, ["4x5"], MUTED)
 
@@ -193,38 +276,61 @@ def weather(game, now, metric):
         result["error"] = "WX UNAVAILABLE"
     return result
 
-def icon(c, code):
+def wx_mood(code, live):
+    if live:
+        return LIVE
+    code = number(code, 0)
+    if code in [0, 1]:
+        return AMBER
+    if code in [71, 73, 75, 77, 85, 86]:
+        return "#DCF4FF"
+    if code >= 51:
+        return BLUE
+    if code in [45, 48]:
+        return "#9AA8B8"
+    return "#C8D4E8"
+
+def icon(c, code, cx = 174, cy = 10):
     code = number(code, -1)
     if code < 0:
-        fit(c, "?", 169, 8, 10, ["5x7"], MUTED)
+        fit(c, "?", cx - 2, cy - 2, 10, ["5x7"], MUTED)
         return
     if code in [0, 1]:
-        c.fill_circle(169, 9, 4, "#FFD166")
-        for x, y, xx, yy in [[169,1,169,2],[169,16,169,17],[161,9,162,9],[176,9,177,9],[163,3,164,4],[174,14,175,15]]:
-            c.line(x,y,xx,yy,"#FFD166")
+        c.fill_circle(cx, cy, 4, AMBER)
+        c.fill_circle(cx, cy, 2, "#FFE48A")
+        for x, y, xx, yy in [[cx, cy - 7, cx, cy - 6], [cx, cy + 6, cx, cy + 7], [cx - 7, cy, cx - 6, cy], [cx + 6, cy, cx + 7, cy], [cx - 5, cy - 5, cx - 4, cy - 4], [cx + 4, cy + 4, cx + 5, cy + 5], [cx + 4, cy - 5, cx + 5, cy - 4], [cx - 5, cy + 4, cx - 4, cy + 5]]:
+            c.line(x, y, xx, yy, AMBER)
         return
-    c.rect(164, 6, 175, 11, fill = "#D4E5F4")
-    c.rect(160, 9, 179, 12, fill = "#D4E5F4")
-    c.rect(168, 4, 172, 10, fill = "#D4E5F4")
-    if code in [71,73,75,77,85,86]:
-        for x in [163, 169, 175]:
-            c.pixel(x,15,WHITE)
-            c.pixel(x+1,16,WHITE)
+    c.rect(cx - 6, cy - 1, cx + 5, cy + 2, fill = "#D4E5F4")
+    c.rect(cx - 9, cy + 1, cx + 8, cy + 3, fill = "#D4E5F4")
+    c.rect(cx - 2, cy - 3, cx + 2, cy + 1, fill = "#D4E5F4")
+    if code in [71, 73, 75, 77, 85, 86]:
+        for x in [cx - 8, cx - 1, cx + 6]:
+            c.pixel(x, cy + 6, WHITE)
+            c.pixel(x + 1, cy + 7, WHITE)
+            c.pixel(x + 1, cy + 5, WHITE)
     elif code >= 51:
-        for x in [163, 169, 175]:
-            c.line(x,15,x-1,17,BLUE)
-    elif code in [45,48]:
-        c.line(161,15,177,15,MUTED)
+        for x in [cx - 8, cx - 1, cx + 6]:
+            c.line(x, cy + 6, x - 1, cy + 9, BLUE)
+    elif code in [45, 48]:
+        c.line(cx - 10, cy + 6, cx + 9, cy + 6, MUTED)
+        c.line(cx - 8, cy + 8, cx + 7, cy + 8, color.dim(MUTED, 60))
 
-def logo(c, ab, x):
-    # Native team marks. KC is 40x26 from the official raster; others 36x22.
-    if ab in TEAMS:
-        c.image(LOGOS[ab], x, 1)
-    else:
-        fit(c, ab, x, 8, 40, ["5x7", "4x5"])
+def logo(c, ab, slot_x):
+    # Center each mark in a fixed 40x26 slot so AT is always the midpoint.
+    if ab not in TEAMS:
+        fit(c, ab, slot_x + 4, SLOT_Y + 8, SLOT_W - 8, ["5x7", "4x5"])
+        return
+    wh = LOGO_WH[ab]
+    x = slot_x + (SLOT_W - wh[0]) // 2
+    y = SLOT_Y + (SLOT_H - wh[1]) // 2
+    c.image(LOGOS[ab], x, y)
 
 def draw(c, g, wx, metric, timezone = "STADIUM LOCAL"):
-    c.fill("black")
+    live = g["state"] == "in"
+    mood = wx_mood(wx.get("code"), live)
+    c.gradient_rect(0, 0, 191, 31, NIGHT, SKY, horizontal = False)
+    c.gradient_rect(128, 0, 191, 31, NIGHT, color.dim(mood, 16), horizontal = True)
     co = g["competition"]
     away = {}
     home = {}
@@ -236,22 +342,34 @@ def draw(c, g, wx, metric, timezone = "STADIUM LOCAL"):
             away = p
     a = str(obj(away.get("team")).get("abbreviation", "AWAY")).upper()
     h = str(obj(home.get("team")).get("abbreviation", "HOME")).upper()
-    # 40px logo slots: largest two-logo width that still leaves a score column.
-    logo(c, a, 1)
-    logo(c, h, 47)
-    c.text("@", 42, 10, font = "4x5", color = MUTED)
+    # AT sits in the true gap between the two bitmaps.
+    aw = LOGO_WH[a] if a in LOGO_WH else [SLOT_W, SLOT_H]
+    hw = LOGO_WH[h] if h in LOGO_WH else [SLOT_W, SLOT_H]
+    a_x = SLOT_X[0] + (SLOT_W - aw[0]) // 2
+    h_x = SLOT_X[1] + (SLOT_W - hw[0]) // 2
+    a_y = SLOT_Y + (SLOT_H - aw[1]) // 2
+    h_y = SLOT_Y + (SLOT_H - hw[1]) // 2
+    gap0 = a_x + aw[0]
+    gap1 = h_x
+    at_x = gap0 + (gap1 - gap0 - AT_W) // 2
+    at_y = (a_y + aw[1] // 2 + h_y + hw[1] // 2) // 2 - AT_H // 2
     city = obj(obj(co.get("venue")).get("address")).get("city", "VENUE TBD")
-    fit(c, city, 1, 27, 86, ["4x5"], MUTED)
-    c.line(88, 3, 88, 28, "#354255")
-    c.line(122, 3, 122, 28, "#354255")
+    mid = SLOT_X[0] + (SLOT_X[1] + SLOT_W - SLOT_X[0]) // 2
+    fit_center(c, city, mid, 27, 88, ["4x5"], TURF_INK)
+    c.line(92, 2, 92, 29, color.dim(mood, 40))
+    c.line(128, 2, 128, 29, color.dim(mood, 40))
+    # Stadium clock / live scoreboard, 94–127.
+    c.round_rect(94, 1, 127, 24, 2, fill = BOARD)
+    c.round_rect(94, 1, 127, 24, 2, outline = BOARD_EDGE)
     status = g["status"]
-    if g["state"] == "in":
-        fit(c, "LIVE", 91, 2, 30, ["4x5"], "#64E6AC")
+    cx = 111
+    if live:
+        c.badge("LIVE", 96, 2, color = "black", bg = LIVE, font = "4x5", pad = 1)
         av = away.get("score", "-")
         hv = home.get("score", "-")
         av = obj(av).get("displayValue", "-") if type(av) == "dict" else av
         hv = obj(hv).get("displayValue", "-") if type(hv) == "dict" else hv
-        fit(c, str(av) + "-" + str(hv), 91, 11, 30, ["6x8", "5x7", "4x5"])
+        fit_center(c, str(av) + "-" + str(hv), cx, 10, 30, ["scoretext", "6x8", "5x7", "4x5"], WHITE)
         short = str(obj(status.get("type")).get("shortDetail", ""))
         per = int(number(status.get("period"), 0))
         label = "OT" if per > 4 else "Q" + str(per)
@@ -259,7 +377,7 @@ def draw(c, g, wx, metric, timezone = "STADIUM LOCAL"):
             label = "HALFTIME"
         else:
             label = label + " " + str(status.get("displayClock", ""))
-        fit(c, label, 91, 25, 30, ["4x5"], MUTED)
+        fit_center(c, label, cx, 26, 32, ["4x5"], MUTED)
     else:
         offset = int(wx.get("offset", 0))
         label = wx.get("zone", "UTC")
@@ -271,31 +389,44 @@ def draw(c, g, wx, metric, timezone = "STADIUM LOCAL"):
         date = civil(local // 86400)
         hour = (local // 3600) % 24
         minute = (local // 60) % 60
-        fit(c, "%d/%d" % (date[1], date[2]), 91, 2, 30, ["4x5"], MUTED)
+        fit_center(c, "%d/%d" % (date[1], date[2]), cx, 2, 30, ["4x5"], MUTED)
         valid = co.get("timeValid", True)
         time = str(hour % 12 or 12) + ":" + fmt.pad(minute) + ("P" if hour >= 12 else "A")
-        fit(c, time if valid else "TBD", 91, 11, 30, ["6x8", "5x7", "4x5"])
-        fit(c, label, 91, 25, 30, ["4x5"], MUTED)
+        clock = time if valid else "TBD"
+        fit_center(c, clock, cx, 9, 30, ["scoretext", "6x8", "5x7", "4x5"], AMBER)
+        c.hline(100, 22, 22, color.dim(AMBER, 55))
+        fit_center(c, label, cx, 26, 32, ["4x5"], MUTED)
+    # Marks last so chrome never paints over the logos.
+    logo(c, a, SLOT_X[0])
+    logo(c, h, SLOT_X[1])
+    c.text("AT", at_x, at_y, font = "4x5", color = WHITE)
     if wx.get("error"):
         error = wx["error"]
         title = "FORECAST" if error == "FORECAST SOON" else "WEATHER"
         sub = "SOON" if error == "FORECAST SOON" else "UNAVAILABLE"
-        fit(c, title, 128, 4, 53, ["4x5"], MUTED)
-        fit(c, sub, 128, 13, 53, ["5x7", "4x5"], AMBER)
-        fit(c, "CHECK LATER", 128, 25, 53, ["4x5"], MUTED)
+        fit(c, title, 132, 4, 48, ["4x5"], MUTED)
+        fit(c, sub, 132, 13, 48, ["5x7", "4x5"], AMBER)
+        fit(c, "CHECK LATER", 132, 25, 48, ["4x5"], MUTED)
         return
-    # A three-digit or negative temperature is laddered before the icon at x160.
     temp = str(int(math.round(wx["temp"])))
-    fit(c, temp, 127, 1, 26, ["10x16", "7x12", "5x7"])
-    c.rect(154, 1, 156, 3, outline = WHITE)
-    c.text("C" if metric else "F", 154, 8, font = "4x5", color = MUTED)
-    icon(c, wx.get("code"))
+    tf = "10x16"
+    for f in ["16x20", "10x16", "7x12", "5x7"]:
+        if c.text_width(temp, f) <= 42:
+            tf = f
+            break
+    tw = c.text_width(temp, tf)
+    c.text(temp, 131, 1, font = tf, color = WHITE)
+    deg_x = 131 + tw + 1
+    c.rect(deg_x, 1, deg_x + 2, 3, outline = WHITE)
+    c.text("C" if metric else "F", deg_x, 7, font = "4x5", color = MUTED)
+    icon(c, wx.get("code"), 179, 6)
     rain = wx.get("rain")
     wind = wx.get("wind")
+    snow = wx.get("code") in [71, 73, 75, 77, 85, 86]
     rp = str(int(math.round(max(0, min(100, rain))))) + "%" if rain != None else "--"
     wp = str(int(math.round(wind))) if wind != None else "--"
-    fit(c, ("SNOW " if wx.get("code") in [71,73,75,77,85,86] else "RAIN ") + rp, 128, 20, 53, ["4x5"], BLUE)
-    fit(c, "W " + wp + ("KMH" if metric else "MPH"), 128, 27, 53, ["4x5"], MUTED)
+    fit(c, ("SNOW " if snow else "RAIN ") + rp, 131, 22, 40, ["4x5"], BLUE)
+    fit(c, "W " + wp + ("KMH" if metric else "MPH"), 131, 27, 48, ["4x5"], MUTED)
 
 def gameday(c, ctx):
     team = str(ctx.inputs.get("team", "ALL") or "ALL").upper()
@@ -305,13 +436,11 @@ def gameday(c, ctx):
         message(c, "UNKNOWN TEAM", "CHOOSE AN NFL TEAM IN SETTINGS")
         return
     now = ctx.now.unix
-    # Include yesterday to retain a live game spanning UTC midnight.
-    date = datetag(now // 86400 - 1) + "-" + datetag(now // 86400 + 21)
-    feed = get("https://site.api.espn.com/apis/site/v2/sports/football/nfl/scoreboard", {"dates": date,"limit":100}, 60)
-    if not feed or type(feed.get("events")) != "list":
+    events = nfl_events()
+    if events == None:
         message(c, "SCORES OFFLINE", "CHECK CONNECTION / RETRY SHORTLY")
         return
-    game = choose(feed["events"], team, now)
+    game = choose(events, team, now)
     if not game:
         message(c, "NO UPCOMING GAME", (team + " / NEXT 21 DAYS") if team != "ALL" else "NFL / NEXT 21 DAYS", True)
         return

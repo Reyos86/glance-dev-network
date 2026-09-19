@@ -56,7 +56,7 @@ Weather is **outdoors at the venue**, including indoor stadiums. The app does no
 
 At most three HTTP requests per render:
 
-- **Schedule, scores, venue, team identity** — [ESPN](https://www.espn.com/nfl/) public site API (undocumented; availability is not guaranteed). Team marks remain the property of their owners; no NFL or club endorsement is implied.
+- **Schedule, scores, venue, team identity** — ESPN website scoreboard (`site.web.api.espn.com`, with `cdn.espn.com` as fallback). The older `site.api.espn.com` host is blocked by Akamai on many networks. Current week plus the next two covers the 21-day follow window. Team marks remain the property of their owners; no NFL or club endorsement is implied.
 - **Forecast** — [Open-Meteo](https://open-meteo.com/), CC BY 4.0. The free hosted endpoint is intended for noncommercial use.
 - **Venue point** — [Esri World Geocoding](https://developers.arcgis.com/rest/geocode/find-address-candidates/). Only high-confidence point-of-interest matches are used. A city-center pin is never silently substituted for the stadium.
 
@@ -66,9 +66,9 @@ Caches: scores 60s, weather 900s, venue lookup 24h. Live scores are feed snapsho
 
 Bundled native PNGs with binary transparency (no scaling at draw time):
 
-- Most clubs: **36×22**
-- Kansas City: **40×26**, majority-sampled from the official arrowhead (white / Chiefs red / black)
-- Dallas: **36×26** star with navy outer ring, white inner ring, navy fill
+- Kansas City: **40×26** approved arrowhead (white / Chiefs red / black) — unchanged
+- Dallas: **36×26** approved star (navy / white ring / navy fill) — unchanged
+- Other clubs: official [NFL.com](https://www.nfl.com) club art, cropped **up to 40×26**, 2–4 team colors, fully on/off alpha. Near-black fill is lifted so marks like the Raiders shield stay solid on a black panel.
 
 Catalog images: `preview/gameday.png` and `preview/preview.png`.
 

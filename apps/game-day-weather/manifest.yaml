@@ -1,6 +1,6 @@
 gdn: 1
 id: game-day-weather
-version: 1.3.0
+version: 1.4.0
 name: Game Day Weather
 author: community
 description: NFL matchups with stadium weather at kickoff, live scores and current
