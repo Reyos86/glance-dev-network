@@ -1,0 +1,34 @@
+gdn: 1
+id: bambu-print-status
+version: 0.2.0
+name: Bambu Print Status
+author: nicko
+description: Dual Bambu printer dashboard with filament colors, completion clocks and AMS inventory.
+category: Productivity
+entry: app.star
+width: 192
+height: 32
+refresh: 60
+pages: [main]
+inputs:
+  - key: readkey
+    type: string
+    app_input_type: api-key
+    label: Bambu status read API key
+    default: ""
+    required: true
+    help: Enter your bridge read key. Glance stores it encrypted. Select a demo scenario to preview without a key.
+  - key: viewmode
+    type: string
+    app_input_type: dropdown
+    label: View mode
+    default: Auto
+    choices: [Auto, AMS, Diagnostics]
+  - key: demo
+    type: string
+    app_input_type: dropdown
+    label: Studio demo scenario
+    default: Live
+    choices: [Live, BOTH IDLE, P2S PRINTING, X2D PRINTING, BOTH PRINTING, MULTICOLOR CHANGE, PRINT STARTED, PRINT FINISHED, PAUSED, OFFLINE, ERROR, COOLING, STALE DATA, AMS INVENTORY, DIAGNOSTICS, PREPARING, PAUSED + PRINTING, ERROR + PRINTING, OFFLINE + PRINTING, IDLE ZERO, LONG JOB, DARK FILAMENT, BRIGHT FILAMENT, LAYERS, MISSING ETA, EXPIRED EVENT, LONG DUAL JOBS]
+    help: Live uses your authenticated bridge. All other choices use labeled sample data.
+
