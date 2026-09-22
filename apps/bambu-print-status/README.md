@@ -35,10 +35,17 @@ network data. Select one to preview labeled sample data.
 This app requires a compatible Bambu Glance Bridge endpoint. The companion
 bridge package provides the local Bambu Cloud collector and Cloudflare Worker.
 
-The companion bridge/Worker project will be linked here when available.
+### Companion backend
+
+The companion backend project is available here:
+
+https://github.com/nickolbp21-web/bambu-glance-bridge
+
+It includes the local Bambu Cloud bridge, Cloudflare Worker, D1 setup,
+Windows background-task scripts, and full installation instructions.
+
 Your endpoint must return HTTP 200 with the JSON contract documented below;
 an arbitrary printer API is not interchangeable with this bridge contract.
-
 ## Automatic presentation
 
 - Both idle: combined READY screen; daily completed prints and bridge-observed
@@ -66,6 +73,8 @@ and completion time retain priority.
 Active filament RGB colors drive the print rail, indicator and fill. Very dark
 colors are lifted for LED contrast while preserving hue. Alpha in RGBA strings
 is ignored. Invalid/missing colors fall back to the normal state color.
+
+
 
 ## AMS and diagnostics
 
