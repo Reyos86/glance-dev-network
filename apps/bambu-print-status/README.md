@@ -5,22 +5,39 @@ Auto is state-driven: there is no printer/frame rotation or animation.
 
 ## Setup
 
-Enter the read API key issued for your existing Bambu Cloudflare bridge in
-**Bambu status read API key** (`readkey`). This remains an encrypted
-`app_input_type: api-key` input. No credential is embedded, displayed, or logged.
+Each user supplies their own bridge/status endpoint and their own `READ_KEY`.
+The data path is:
 
-The existing transport is unchanged:
-`https://bambu-glance-status.nickolbp.workers.dev/status`, authenticated with the
-`x-api-key` HTTP header. Refresh and HTTP cache TTL remain 60 seconds.
+Bambu printer(s) -> Bambu Cloud -> local Bambu Glance Bridge -> user's
+Cloudflare Worker -> Bambu Print Status GDN app
 
-**View mode** defaults to **Auto**, with **AMS** and **Diagnostics** alternatives.
-The manifest key is `viewmode`: GDN rejects underscores as render-descriptor
-separators, so the requested `view_mode` cannot work as a deployed input key.
-Direct render callers may still pass `view_mode` as an alias.
+1. Configure your compatible bridge and Worker (see Backend setup below).
+2. Enter the full HTTPS `/status` URL in **Status endpoint URL** (`endpoint`),
+   for example `https://your-worker.your-subdomain.workers.dev/status`.
+   This is a placeholder; replace it with your own endpoint.
+3. Enter your bridge's `READ_KEY` in **Bambu status read API key** (`readkey`).
+   Glance stores this through its encrypted `app_input_type: api-key` setting.
+   The app sends it only as the `x-api-key` HTTP header to your configured endpoint.
+4. Leave **Studio demo scenario** at **Live** and choose **View mode**:
+   **Auto** (default), **AMS**, or **Diagnostics** (`viewmode`).
 
-**Studio demo scenario** defaults to **Live**. Select any named scenario to
-preview labeled sample data without a key. A missing/invalid key in Live mode
-shows NO PRINTER DATA, never fake live information.
+Refresh and HTTP cache TTL are both 300 seconds for the free-text and api-key
+inputs. There is no default backend. Endpoint and key are never drawn on the
+panel. Missing settings show SETUP REQUIRED / ADD ENDPOINT + KEY; a configured
+endpoint without the `https://` prefix shows INVALID ENDPOINT / HTTPS REQUIRED.
+A failed request shows NO PRINTER DATA / CHECK CONNECTION.
+
+All named demo scenarios work without an endpoint or key and never request
+network data. Select one to preview labeled sample data.
+
+## Backend setup
+
+This app requires a compatible Bambu Glance Bridge endpoint. The companion
+bridge package provides the local Bambu Cloud collector and Cloudflare Worker.
+
+The companion bridge/Worker project will be linked here when available.
+Your endpoint must return HTTP 200 with the JSON contract documented below;
+an arbitrary printer API is not interchangeable with this bridge contract.
 
 ## Automatic presentation
 
@@ -37,7 +54,7 @@ shows NO PRINTER DATA, never fake live information.
   state: positive green completion screen and a full 100% progress bar.
 - Idle/finished temperature warnings: only relevant hot bed/nozzle readings.
 - Stale: amber DATA STALE / CHECK BRIDGE. Failed or malformed HTTP data:
-  NO PRINTER DATA / CHECK KEY or CHECK BRIDGE.
+  NO PRINTER DATA / CHECK CONNECTION or CHECK BRIDGE.
 
 `display_job` is preferred to `job`, with measured truncation. Completion clocks
 use `estimated_completion_local`; UTC estimates and remaining minutes are not
@@ -62,7 +79,26 @@ Diagnostics is an explicit allowlist: bridge retrieval status, numeric
 is not claimed fresh. No raw diagnostics object, tokens, credentials, email,
 serials, or IP addresses are rendered. Lifetime data is not shown.
 
-## Bridge contract notes
+## Bridge JSON contract
+
+The `/status` response is a JSON object with a nonempty `printers` array.
+A minimal ready response is:
+
+```json
+{"printers": [{"model": "P2S", "online": true, "state": "IDLE"}, {"model": "X2D", "online": true, "state": "IDLE"}]}
+```
+
+Each printer may supply `name`, `model`, `online`, `state`, `job`, `display_job`,
+`progress` (0-100), `estimated_completion_local`, `completed_at_local` or
+`finished_at_local`, `active_filament_color` (RGB/RGBA hex),
+`active_filament_type`, `active_filament_slot`, `layer`, `total_layers`,
+`ams_slots`, `temperature_warning`, `hot_components`, `bed_temp`, and
+`nozzle_temp`. States are IDLE, PRINTING, PREPARING, PAUSED, ERROR, OFFLINE,
+and FINISHED; RUNNING, PREPARE, FINISH, and READY are accepted aliases.
+Optional top-level fields are `daily_summary`, `diagnostics`, `age_seconds`,
+`stale`, and `event`. Diagnostics consumes `age_seconds` and `cloud_connected`.
+Missing optional display values use the app's unknown/empty presentation.
+
 
 `printers` is a list; this dashboard uses its first two records in bridge order.
 The supplied printer fields are consumed directly. AMS slot dictionaries support
@@ -78,22 +114,14 @@ is used only when exactly one printing/preparing/finished printer is present.
 
 ## Verification
 
-Glance MCP `render_app` was used repeatedly to inspect every Studio scenario:
-both idle; P2S printing; X2D printing; both printing; multicolor change; print
-started; print finished; paused; offline; error; cooling; stale; AMS inventory;
-diagnostics; preparing; paused/error/offline plus printing; zero daily totals;
-long job; dark filament; bright filament; layers; missing ETA; expired event;
-and long dual jobs. Also rendered simulated HTTP failure and an invalid key.
+Run `py -3.14 apps/bambu-print-status/tests/check_behavior.py` for behavioral
+checks, including configuration states, authenticated transport, and every demo
+scenario without network access. The Python-compatible harness complements
+actual Starlark rendering and full validation with Glance MCP.
 
-Inspection corrected demo-label interference with AMS identity, completion bar
-percentage, and dark-color contrast. Final views retain safe-zone margins,
-separate job/percentage/time bands, and explicit truncation.
-
-Run `py -3.14 apps/bambu-print-status/tests/check_behavior.py` for 10 focused
-behavioral checks (Python-compatible harness; actual Starlark rendering is
-verified by Glance MCP). Full GDN validation and catalog preview generation are
-performed using Glance MCP. Authenticated successful live retrieval has not been
-verified because no real read key was supplied.
+Render setup required, invalid endpoint, simulated HTTP failure, both idle,
+P2S printing, both printing, AMS inventory, and diagnostics with Glance MCP.
+Authenticated retrieval requires your own running backend and key.
 
 ## Catalog previews
 

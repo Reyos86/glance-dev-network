@@ -6,6 +6,7 @@ from pathlib import Path
 from types import SimpleNamespace
 import datetime
 import unittest
+from unittest.mock import Mock, patch
 
 ROOT = Path(__file__).resolve().parents[1]
 ns = {'type': lambda v: {dict:'dict', list:'list', str:'string', int:'int', float:'float', bool:'bool', type(None):'NoneType'}.get(type(v), type(v).__name__)}
@@ -21,12 +22,58 @@ class Canvas:
     def progress_bar(self,*a,**kw): self.bars.append((a,kw))
 
 def render(data, **inputs):
-    ns['fetch'] = lambda ctx: data
-    ctx = SimpleNamespace(inputs=inputs, now=SimpleNamespace(unix=1800000000))
-    c=Canvas(); ns['main'](c,ctx)
+    settings = {'endpoint': 'https://example.invalid/status', 'readkey': 'test-only-key'}
+    settings.update(inputs)
+    ctx = SimpleNamespace(inputs=settings, now=SimpleNamespace(unix=1800000000))
+    c=Canvas()
+    with patch.dict(ns, http=SimpleNamespace(get=Mock(return_value={'status_code': 200, 'json': data}))):
+        ns['main'](c,ctx)
     return c
 
 class Behavior(unittest.TestCase):
+    def test_live_configuration_and_transport(self):
+        for settings, expected in [
+            ({}, ['BAMBU STATUS', 'SETUP REQUIRED', 'ADD ENDPOINT + KEY']),
+            ({'endpoint': 'https://example.invalid/status'}, ['BAMBU STATUS', 'SETUP REQUIRED', 'ADD ENDPOINT + KEY']),
+            ({'readkey': 'test-only-key'}, ['BAMBU STATUS', 'SETUP REQUIRED', 'ADD ENDPOINT + KEY']),
+            ({'endpoint': 'http://example.invalid/status', 'readkey': 'test-only-key'}, ['BAMBU STATUS', 'INVALID ENDPOINT', 'HTTPS REQUIRED']),
+            ({'endpoint': 'nonsense', 'readkey': 'test-only-key'}, ['BAMBU STATUS', 'INVALID ENDPOINT', 'HTTPS REQUIRED']),
+        ]:
+            get = Mock(side_effect=AssertionError('Unexpected network request'))
+            with patch.dict(ns, http=SimpleNamespace(get=get)):
+                c=Canvas(); ns['main'](c, SimpleNamespace(inputs=settings))
+            self.assertEqual(c.texts, expected)
+            get.assert_not_called()
+        settings = {'endpoint': 'https://example.invalid/status', 'readkey': 'test-only-key'}
+        for status in [0, 401, 500, 200]:
+            response = {'status_code': status}
+            if status == 200:
+                response['json'] = ns['demo']('BOTH IDLE')
+            get = Mock(return_value=response)
+            with patch.dict(ns, http=SimpleNamespace(get=get)):
+                c=Canvas(); ns['main'](c, SimpleNamespace(inputs=settings))
+            get.assert_called_once_with(settings['endpoint'], headers={'x-api-key': settings['readkey']}, ttl_seconds=300)
+            if status != 200:
+                self.assertEqual(c.texts, ['BAMBU STATUS', 'NO PRINTER DATA', 'CHECK CONNECTION'])
+            else:
+                self.assertIn('READY', c.texts)
+            self.assertNotIn(settings['endpoint'], ' '.join(c.texts))
+            self.assertNotIn(settings['readkey'], ' '.join(c.texts))
+
+    def test_every_demo_without_settings_or_network(self):
+        # Read the actual catalog choices so newly added demos are covered too.
+        line = next(line for line in ROOT.joinpath('manifest.yaml').read_text().splitlines() if 'choices: [Live,' in line)
+        scenarios = line.split('[', 1)[1].split(']', 1)[0].split(', ')[1:]
+        get = Mock(side_effect=AssertionError('Demo requested network data'))
+        with patch.dict(ns, http=SimpleNamespace(get=get)):
+            for scenario in scenarios:
+                for mode in ['Auto', 'AMS', 'Diagnostics']:
+                    ctx = SimpleNamespace(inputs={'demo': scenario, 'viewmode': mode}, now=SimpleNamespace(unix=1800000000))
+                    c=Canvas(); ns['main'](c,ctx)
+                    self.assertIn('DEMO', c.texts)
+                    self.assertNotIn('SETUP REQUIRED', c.texts)
+        get.assert_not_called()
+
     def test_idle_hides_old_jobs_and_zero_totals(self):
         data=ns['demo']('IDLE ZERO'); c=render(data)
         self.assertIn('READY FOR YOUR NEXT PRINT',c.texts)

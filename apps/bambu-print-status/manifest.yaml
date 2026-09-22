@@ -2,22 +2,29 @@ gdn: 1
 id: bambu-print-status
 version: 0.2.0
 name: Bambu Print Status
-author: nicko
-description: Dual Bambu printer dashboard with filament colors, completion clocks and AMS inventory.
+author: Bambu Print Status contributors
+description: Dual Bambu printer dashboard with live print status, AMS filament colors, completion times, and diagnostics.
 category: Productivity
 entry: app.star
 width: 192
 height: 32
-refresh: 60
+refresh: 300
 pages: [main]
 inputs:
+  - key: endpoint
+    type: string
+    app_input_type: free-text
+    label: Status endpoint URL
+    default: ""
+    required: true
+    help: "Enter the full HTTPS /status URL from your Bambu Glance bridge, for example: https://your-worker.your-subdomain.workers.dev/status"
   - key: readkey
     type: string
     app_input_type: api-key
     label: Bambu status read API key
     default: ""
     required: true
-    help: Enter your bridge read key. Glance stores it encrypted. Select a demo scenario to preview without a key.
+    help: Enter your own bridge READ_KEY. Glance stores it encrypted. Select a demo scenario to preview without an endpoint or key.
   - key: viewmode
     type: string
     app_input_type: dropdown

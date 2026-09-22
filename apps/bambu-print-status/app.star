@@ -212,7 +212,7 @@ def diagnostics(c, printers, data):
     cloud = d.get("cloud_connected")
     txt(c, "CLOUD DATA FRESH" if cloud == True else "CLOUD DISCONNECTED" if cloud == False else "CLOUD STATUS UNKNOWN", 15, 24, 167)
 
-# Explicit demo selection only: a missing key still shows the real no-data screen.
+# Explicit demo selection only: demos never need settings or network access.
 def demo(s):
     p = {"name": "Workshop P2S", "model": "P2S", "online": True, "state": "IDLE", "job": "old_job.3mf", "display_job": "TEGAN KNIFE CAT", "progress": 64, "estimated_completion_local": "11:42 PM", "active_filament_color": "#20DAEA", "active_filament_type": "PLA", "active_filament_slot": "A2", "layer": 231, "total_layers": 417}
     q = dict(p)
@@ -262,7 +262,8 @@ def demo(s):
     return data
 
 def fetch(ctx):
-    resp = http.get("https://bambu-glance-status.nickolbp.workers.dev/status", headers = {"x-api-key": ctx.inputs.get("readkey", "")}, ttl_seconds = 60)
+    # Keep the main fetch cache in sync with the 300-second manifest refresh.
+    resp = http.get(ctx.inputs.get("endpoint", ""), headers = {"x-api-key": ctx.inputs.get("readkey", "")}, ttl_seconds = 300)
     return resp["json"] if resp["status_code"] == 200 else None
 
 def iso_epoch(v):
@@ -316,9 +317,18 @@ def event_printer(data, printers, ctx):
 
 def render(c, ctx):
     scenario = ctx.inputs.get("demo", "Live")
+    if scenario == "Live":
+        endpoint = ctx.inputs.get("endpoint", "")
+        readkey = ctx.inputs.get("readkey", "")
+        if not endpoint or not readkey:
+            message(c, "SETUP REQUIRED", "ADD ENDPOINT + KEY")
+            return
+        if not endpoint.startswith("https://"):
+            message(c, "INVALID ENDPOINT", "HTTPS REQUIRED")
+            return
     data = demo(scenario.upper()) if scenario != "Live" else fetch(ctx)
     if type(data) != "dict":
-        message(c, "NO PRINTER DATA", "CHECK KEY / CONNECTION", "red")
+        message(c, "NO PRINTER DATA", "CHECK CONNECTION", "red")
         return
     if data.get("stale") == True:
         message(c, "DATA STALE", "CHECK BRIDGE")
