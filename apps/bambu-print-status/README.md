@@ -93,4 +93,25 @@ Run `py -3.14 apps/bambu-print-status/tests/check_behavior.py` for 10 focused
 behavioral checks (Python-compatible harness; actual Starlark rendering is
 verified by Glance MCP). Full GDN validation and catalog preview generation are
 performed using Glance MCP. Authenticated successful live retrieval has not been
-verified because no real read key was supplied. The app has not been submitted.
+verified because no real read key was supplied.
+
+## Catalog previews
+
+Regenerate submission images with explicit sample inputs, leaving the deployed
+defaults at Live / Auto and the encrypted readkey input unchanged:
+
+```powershell
+py -3.14 -c "from gdn.preview import write_previews; write_previews('apps/bambu-print-status', inputs={'demo': 'P2S PRINTING', 'viewmode': 'Auto'})"
+```
+
+This writes `preview/main.png` and the enlarged `preview/preview.png` catalog
+poster with a labeled P2S print, job name, percentage, completion clock, active
+filament color, and progress bar. No API key is needed. GDN's current preview
+writer supports app pages, not additional demo scenarios for the same page.
+Inspect BOTH PRINTING separately with Glance MCP `render_app` and
+`inputs={"demo": "BOTH PRINTING", "viewmode": "Auto"}`.
+
+The MCP `write_previews` wrapper, Studio submission, and `gdn submit` currently
+regenerate images using manifest defaults. Run the explicit command above after
+any such generation to restore the demo catalog images before updating the
+existing PR branch. Do not change manifest defaults to generate previews.
