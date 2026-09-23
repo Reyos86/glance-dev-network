@@ -214,7 +214,7 @@ def diagnostics(c, printers, data):
 
 # Explicit demo selection only: demos never need settings or network access.
 def demo(s):
-    p = {"name": "Workshop P2S", "model": "P2S", "online": True, "state": "IDLE", "job": "old_job.3mf", "display_job": "TEGAN KNIFE CAT", "progress": 64, "estimated_completion_local": "11:42 PM", "active_filament_color": "#20DAEA", "active_filament_type": "PLA", "active_filament_slot": "A2", "layer": 231, "total_layers": 417}
+    p = {"name": "Workshop P2S", "model": "P2S", "online": True, "state": "IDLE", "job": "old_job.3mf", "display_job": "TEGAN CAT", "progress": 64, "estimated_completion_local": "11:42 PM", "active_filament_color": "#20DAEA", "active_filament_type": "PLA", "active_filament_slot": "A2", "layer": 231, "total_layers": 417}
     q = dict(p)
     q.update({"name": "Workshop X2D", "model": "X2D", "display_job": "DESK RISER", "progress": 31, "estimated_completion_local": "1:07 AM", "active_filament_color": "#F7F232", "active_filament_slot": "A1"})
     data = {"printers": [p, q], "daily_summary": {"completed_prints": 3, "observed_print_minutes": 684}, "diagnostics": {"age_seconds": 14, "cloud_connected": True}}
@@ -389,5 +389,7 @@ def main(c, ctx):
             txt(c, "DEMO", 160, 24, 22, color = MUTED)
         else:
             txt(c, "DEMO", 101, 1, 22, color = MUTED)
+
+
 
 
