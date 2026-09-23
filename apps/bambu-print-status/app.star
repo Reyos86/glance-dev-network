@@ -1,7 +1,34 @@
 # DESIGN: the user's dual-printer SCROLL dashboard, entirely inside x=10..181.
 # Auto is state-driven, never time-multiplexed. Bridge local time is authoritative.
-COLORS = {"PRINTING": "green", "PREPARING": "green", "PAUSED": "amber", "ERROR": "red", "OFFLINE": "red", "FINISHED": "green", "IDLE": "#BCC6D5"}
+GREEN = "#00AE42"
+COLORS = {"PRINTING": GREEN, "PREPARING": GREEN, "PAUSED": "amber", "ERROR": "red", "OFFLINE": "red", "FINISHED": GREEN, "IDLE": "#BCC6D5"}
 MUTED = "#BCC6D5"
+
+# PNGs are local, native-size assets whitelisted by manifest.yaml.
+def printer_art(c, p, x, y, mini = False):
+    model = identity(p)
+    if model in ["P2S", "X2D"]:
+        c.image(model.lower() + ("-mini.png" if mini else ".png"), x, y)
+    else:
+        c.image("bambu-symbol.png", x, y)
+
+def model_art(c, p, x, y):
+    model = identity(p)
+    if model in ["P2S", "X2D"]:
+        c.image(model.lower() + "-wordmark.png", x, y)
+    else:
+        txt(c, model, x, y, 27)
+
+def splash(c):
+    c.fill("black")
+    c.image("bambu-logo-large.png", 20, 4)
+    txt(c, "PRINTER", 116, 7, 66, "5x7")
+    txt(c, "STATUS", 116, 18, 66, "5x7", GREEN)
+
+def nozzle(c, x, y, color):
+    c.rect(x-2, y, x+2, y+1, fill = MUTED)
+    c.rect(x-1, y+2, x+1, y+2, fill = color)
+    c.line(x, y+3, x, y+3, color)
 
 def clean(value, fallback = ""):
     if type(value) != "string":
@@ -87,7 +114,8 @@ def base(c, color):
 
 def message(c, title, sub, color = "amber"):
     base(c, color)
-    txt(c, "BAMBU STATUS", 15, 1, 167, color = MUTED)
+    c.image("bambu-symbol.png", 15, 1, w = 5, h = 7)
+    txt(c, "PRINTER STATUS", 25, 1, 157, color = MUTED)
     txt(c, title, 15, 10, 167, "5x7", color)
     txt(c, sub, 15, 24, 167, color = MUTED)
 
@@ -104,49 +132,63 @@ def cooling(p):
 def single(c, p):
     s = state(p)
     color = accent(p)
-    base(c, color)
-    txt(c, identity(p), 15, 1, 63)
-    c.text("COMPLETE" if s == "FINISHED" else s, 181, 1, font = "4x5", color = color, align = "right")
+    c.fill("black")
+    printer_art(c, p, 10, 1)
+    model_art(c, p, 44, 0)
     if s in ["OFFLINE", "ERROR"]:
-        txt(c, "PRINTER " + s, 15, 10, 167, "5x7", "red")
-        txt(c, "CHECK CONNECTION" if s == "OFFLINE" else "CHECK PRINTER", 15, 24, 167)
+        # Triangle ends at x=171: 10px inside the safe area's right edge.
+        c.line(160, 2, 149, 20, "amber")
+        c.line(160, 2, 171, 20, "amber")
+        c.line(149, 20, 171, 20, "amber")
+        c.rect(159, 9, 160, 14, fill = "amber")
+        c.rect(159, 17, 160, 18, fill = "amber")
+        txt(c, s, 44, 11, 101, "5x7", "red")
+        txt(c, "CHECK CONNECTION" if s == "OFFLINE" else "CHECK PRINTER", 44, 25, 138)
         return
     if s == "IDLE":
-        txt(c, "COOLING", 15, 10, 167, "5x7", "amber")
-        txt(c, cooling(p), 15, 24, 167)
+        txt(c, "COOLING", 44, 11, 138, "5x7", "amber")
+        txt(c, cooling(p), 44, 25, 138)
         return
-    # Percentage reserves the right edge of the job row; jobs never enter it.
-    pct = percent(p)
-    pw = c.text_width(pct, "5x7")
-    txt(c, job(p), 15, 9, 161-pw, "5x7")
-    c.text(pct, 181, 9, font = "5x7", align = "right")
+    c.text(percent(p), 181, 0, font = "5x7", align = "right")
+    if s == "FINISHED":
+        c.line(45, 13, 50, 18, GREEN)
+        c.line(50, 18, 58, 9, GREEN)
+        c.line(45, 14, 50, 19, GREEN)
+        c.line(50, 19, 59, 9, GREEN)
+        txt(c, "COMPLETE", 65, 10, 116, "5x7", GREEN)
+        txt(c, job(p), 44, 21, 138)
+        finished = clock(p.get("completed_at_local", p.get("finished_at_local")), True)
+        txt(c, finished, 99, 1, 44, color = MUTED)
+        if p.get("temperature_warning") == True:
+            txt(c, "HOT", 73, 1, 22, color = "amber")
+        c.progress_bar(44, 29, 138, 3, 100, color = GREEN, bg = "#26332B")
+        return
+    txt(c, s, 77, 1, 72, color = color)
+    txt(c, job(p), 44, 9, 138, "5x7")
     eta = clock(p.get("estimated_completion_local"))
     line = "COMPLETION UNKNOWN"
     if eta:
-        for prefix in ["ESTIMATED COMPLETION: ", "EST COMPLETE ", "COMPLETE "]:
-            if c.text_width(prefix + eta, "4x5") <= 167:
+        for prefix in ["ETA "]:
+            if c.text_width(prefix + eta, "4x5") <= 138:
                 line = prefix + eta
                 break
     if s == "PAUSED":
         line = "PAUSED / ON HOLD"
-    if s == "FINISHED":
-        finished = clock(p.get("completed_at_local", p.get("finished_at_local")))
-        line = "FINISHED" + (" " + finished if finished else "")
-        if p.get("temperature_warning") == True:
-            line = "COOLING " + cooling(p)
-    txt(c, line, 15, 18, 167, color = MUTED)
-    c.progress_bar(15, 26, 167, 5, 100 if s == "FINISHED" else (number(p.get("progress"), 100) or 0), color = color, bg = "#263345")
-    # Optional filament label in the header's middle gap, measured around status.
+    # Local completion time wins space; filament/layer context uses the remainder.
     label = clean(p.get("active_filament_slot")).replace("DY1", "HT1") + " " + clean(p.get("active_filament_type"))
     if not label.strip():
         layer, total = number(p.get("layer")), number(p.get("total_layers"))
         if layer != None and total != None and total > 0:
             label = "LAYER %d/%d" % (layer, total)
-    sw = c.text_width(s, "4x5")
-    left = 20 + c.text_width(clip(c, identity(p), "4x5", 63), "4x5")
-    if s in ["PRINTING", "PREPARING"] and label.strip() and c.text_width(label, "4x5") + 7 <= 176-sw-left:
-        c.rect(left, 2, left+2, 4, fill = color)
-        txt(c, label, left+5, 1, 171-sw-left, color = MUTED)
+    if s in ["PRINTING", "PREPARING"] and label.strip() and c.text_width(line + " / " + label, "4x5") <= 138:
+        line += " / " + label
+    txt(c, line, 44, 19, 138, color = MUTED)
+    progress = number(p.get("progress"), 100)
+    c.progress_bar(44, 29, 138, 3, progress or 0, color = color, bg = "#26332B")
+    if s in ["PRINTING", "PREPARING"]:
+        # Static toolhead at the actual fill edge, clamped inside the bar.
+        if progress != None:
+            nozzle(c, max(46, min(179, 44 + int(137*progress/100))), 25, color)
 
 def dual(c, printers):
     c.fill("black")
@@ -155,28 +197,41 @@ def dual(c, printers):
         y = i*16
         s = state(p)
         color = accent(p)
-        c.rect(10, y+1, 11, y+14, fill = color)
-        txt(c, identity(p), 15, y, 28)
+        printer_art(c, p, 10, y, True)
+        model_art(c, p, 28, y)
         status = percent(p) if s == "PRINTING" else ("PREP " + percent(p) if s == "PREPARING" else "PAUSED " + percent(p) if s == "PAUSED" else s)
-        txt(c, status, 47, y, 48, color = color)
+        txt(c, status, 61, y+1, 58, color = color)
         eta = clock(p.get("estimated_completion_local"), True) if s in ["PRINTING", "PREPARING"] else ""
         c.text(("ETA " + eta) if eta else "", 181, y, font = "4x5", color = MUTED, align = "right")
         label = job(p) if s in ["PRINTING", "PREPARING", "PAUSED", "FINISHED"] else ("CHECK PRINTER" if s == "ERROR" else "CHECK CONNECTION" if s == "OFFLINE" else "READY")
-        txt(c, label, 15, y+6, 167)
-        c.progress_bar(15, y+13, 167, 2, number(p.get("progress"), 100) or 0, color = color, bg = "#263345")
+        txt(c, label, 28, y+8, 154)
+        c.progress_bar(28, y+14, 154, 2, number(p.get("progress"), 100) or 0, color = color, bg = "#263345")
 
 def idle(c, printers, data):
-    base(c, "green")
-    txt(c, "BAMBU", 15, 1, 100, "5x7")
-    c.text("READY", 181, 1, font = "5x7", color = "green", align = "right")
+    c.fill("black")
     for i in range(len(printers)):
-        txt(c, identity(printers[i]) + " READY", 15+i*86, 12, 81, color = MUTED)
+        x = 16+i*86
+        printer_art(c, printers[i], x, 1)
+        model_art(c, printers[i], x+33, 5)
+        txt(c, "READY", x+33, 18, 41, color = GREEN)
+
+def daily_line(data):
     d = obj(data.get("daily_summary"))
     count = number(d.get("completed_prints", d.get("prints_completed", d.get("print_count", d.get("total_prints", d.get("prints")))))) or 0
     mins = number(d.get("observed_print_minutes")) or 0
     duration = "%dH %dM" % (mins//60, mins%60) if mins >= 60 else "%dM" % mins
-    line = "TODAY %d PRINT%s / %s" % (count, "" if count == 1 else "S", duration) if count or mins else "READY FOR YOUR NEXT PRINT"
-    txt(c, line, 15, 24, 167)
+    return "TODAY %d PRINT%s / %s" % (count, "" if count == 1 else "S", duration) if count or mins else "READY FOR YOUR NEXT PRINT"
+
+def summary(c, printers, data):
+    c.fill("black")
+    # Keep the complete existing lockup centered in a clear left-hand zone.
+    c.image("bambu-logo-large.png", 10, 1)
+    txt(c, " / ".join([identity(p) for p in printers]), 16, 26, 71, color = MUTED)
+    txt(c, "TODAY", 99, 1, 83, "5x7", GREEN)
+    line = daily_line(data)
+    parts = line.replace("TODAY ", "").split(" / ")
+    txt(c, parts[0] if len(parts) == 2 else "READY TO PRINT", 99, 12, 83, "5x7")
+    txt(c, parts[1] if len(parts) == 2 else "NO PRINTS TODAY", 99, 25, 83, color = MUTED)
 
 def inventory(c, printers):
     c.fill("black")
@@ -200,6 +255,56 @@ def inventory(c, printers):
             txt(c, clean(slot.get("type", slot.get("filament_type")), "--"), x, y+8, 26)
             if active:
                 c.line(x, y+14, x+24, y+14, col)
+
+def slot_label(slot):
+    return clean(slot.get("slot", slot.get("id", slot.get("name")))).replace("DY1", "HT1")
+
+def slots_for(p, ht):
+    slots = p.get("ams_slots", [])
+    return [s for s in slots if type(s) == "dict" and (slot_label(s).startswith("HT") or clean(s.get("device")) == "AMS HT") == ht] if type(slots) == "list" else []
+
+def loaded(slot):
+    return slot.get("loaded") != False and slot.get("empty") != True and clean(slot.get("type", slot.get("filament_type"))) not in ["", "--", "EMPTY", "NONE"]
+
+def slot_active(p, slot):
+    return slot.get("active") == True or (slot_label(slot) != "" and slot_label(slot) == clean(p.get("active_filament_slot")).replace("DY1", "HT1"))
+
+def ams_view(c, printers, ht = False):
+    candidates = [p for p in printers if slots_for(p, ht)]
+    active = [p for p in candidates if any([slot_active(p, s) for s in slots_for(p, ht)])]
+    p = (active or candidates or printers)[0]
+    slots = slots_for(p, ht)
+    c.fill("black")
+    c.image("ams-ht-wordmark.png" if ht else "ams-2-pro-wordmark.png", 62, 0)
+    model_art(c, p, 156, 0)
+    if ht:
+        chosen = [s for s in slots if slot_active(p, s)] or slots
+        slot = chosen[0] if chosen else {}
+        present = loaded(slot)
+        col = safe_color(slot.get("color", slot.get("filament_color")), MUTED) if present else MUTED
+        # Device identity stays identical in active, loaded and empty states.
+        c.image("ams-ht.png", 19, 1)
+        if present:
+            c.rect(62, 13, 67, 18, fill = col)
+        txt(c, clean(slot.get("type", slot.get("filament_type"))), 73, 12, 109, "5x7") if present else txt(c, "NOT LOADED" if slots else "NO HT DATA", 62, 13, 120, "5x7")
+        txt(c, "ACTIVE" if present and slot_active(p, slot) else "LOADED" if present else "" if slots else "CHECK BRIDGE", 62, 25, 120, color = col if present else MUTED)
+    elif not slots:
+        c.image("ams-2-pro.png", 10, 1)
+        txt(c, "NO AMS DATA", 62, 12, 120, "5x7")
+        txt(c, "CHECK BRIDGE", 62, 25, 120, color = MUTED)
+    else:
+        c.image("ams-2-pro.png", 10, 1)
+        for i in range(min(4, len(slots))):
+            slot = slots[i]
+            x = 62+i*30
+            col = safe_color(slot.get("color", slot.get("filament_color")), MUTED)
+            active = slot_active(p, slot)
+            c.rect(x, 10, x+24, 14, fill = col if loaded(slot) else "#53605A")
+            txt(c, slot_label(slot) or "A"+str(i+1), x+6, 17, 22)
+            if active:
+                c.rect(x-1, 9, x+25, 23, outline = col)
+        selected = [s for s in slots if slot_active(p,s) and loaded(s)]
+        txt(c, "ACTIVE " + slot_label(selected[0]) + " / " + clean(selected[0].get("type", selected[0].get("filament_type"))) if selected else "NO ACTIVE MATERIAL", 62, 26, 120, color = safe_color(selected[0].get("color", selected[0].get("filament_color")), MUTED) if selected else MUTED)
 
 def diagnostics(c, printers, data):
     base(c, "green")
@@ -258,7 +363,11 @@ def demo(s):
         data["daily_summary"] = {}
     for printer in [p, q]:
         printer["ams_slots"] = [{"slot": "A"+str(i+1), "type": "PLA", "color": ["#F7F232", "#20DAEA", "#EB49D5", "#020108"][i]} for i in range(4)]
-    q["ams_slots"].append({"slot": "DY1", "type": "PETG", "color": "#FFFFFF"})
+    q["ams_slots"].append({"slot": "DY1", "type": "PETG-CF", "color": "#6896A4"})
+    if s == "AMS HT":
+        q["active_filament_slot"] = "DY1"
+    if s == "AMS HT EMPTY":
+        q["ams_slots"][-1].update({"type": "", "loaded": False})
     return data
 
 def fetch(ctx):
@@ -317,6 +426,9 @@ def event_printer(data, printers, ctx):
 
 def render(c, ctx):
     scenario = ctx.inputs.get("demo", "Live")
+    if scenario == "SPLASH":
+        splash(c)
+        return
     if scenario == "Live":
         endpoint = ctx.inputs.get("endpoint", "")
         readkey = ctx.inputs.get("readkey", "")
@@ -339,7 +451,13 @@ def render(c, ctx):
         return
     printers = raw[:2]
     mode = ctx.inputs.get("view_mode", ctx.inputs.get("viewmode", "Auto"))
-    if mode == "AMS" or scenario == "AMS INVENTORY":
+    if mode == "AMS 2 Pro" or scenario == "AMS 2 PRO":
+        ams_view(c, printers)
+    elif mode == "AMS HT" or scenario in ["AMS HT", "AMS HT LOADED", "AMS HT EMPTY"]:
+        ams_view(c, printers, True)
+    elif mode == "Summary" or scenario == "DAILY SUMMARY":
+        summary(c, printers, data)
+    elif mode == "AMS" or scenario == "AMS INVENTORY":
         inventory(c, printers)
     elif mode == "Diagnostics" or scenario == "DIAGNOSTICS":
         diagnostics(c, printers, data)
@@ -366,7 +484,7 @@ def render(c, ctx):
             single(c, finished[0])
         elif ep != None and obj(data.get("event")).get("type") == "PRINT_STARTED":
             base(c, accent(ep))
-            txt(c, identity(ep), 15, 1, 167)
+            txt(c, identity(ep) + " / BAMBU LAB", 15, 1, 80)
             txt(c, "NEW PRINT STARTED", 15, 10, 167, "5x7", accent(ep))
             txt(c, job(ep), 15, 24, 167)
         elif len(busy) == 2:
@@ -380,16 +498,3 @@ def render(c, ctx):
 
 def main(c, ctx):
     render(c, ctx)
-    scenario = ctx.inputs.get("demo", "Live")
-    if scenario != "Live":
-        mode = ctx.inputs.get("view_mode", ctx.inputs.get("viewmode", "Auto"))
-        if (mode == "AMS" or scenario == "AMS INVENTORY") and scenario != "STALE DATA":
-            txt(c, "DEMO", 15, 9, 24, color = MUTED)
-        elif mode == "Diagnostics" or scenario == "DIAGNOSTICS":
-            txt(c, "DEMO", 160, 24, 22, color = MUTED)
-        else:
-            txt(c, "DEMO", 101, 1, 22, color = MUTED)
-
-
-
-

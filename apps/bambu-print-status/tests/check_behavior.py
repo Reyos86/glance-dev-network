@@ -13,13 +13,14 @@ ns = {'type': lambda v: {dict:'dict', list:'list', str:'string', int:'int', floa
 exec(compile(ROOT.joinpath('app.star').read_text().replace('.elems()', ''), 'app.star', 'exec'), ns)
 
 class Canvas:
-    def __init__(self): self.texts=[]; self.bars=[]
+    def __init__(self): self.texts=[]; self.bars=[]; self.rects=[]; self.images=[]
     def fill(self,*a,**kw): pass
-    def rect(self,*a,**kw): pass
+    def rect(self,*a,**kw): self.rects.append((a,kw))
     def line(self,*a,**kw): pass
     def text_width(self,s,font): return len(s)*(6 if font=='5x7' else 5)
     def text(self,s,*a,**kw): self.texts.append(s)
     def progress_bar(self,*a,**kw): self.bars.append((a,kw))
+    def image(self,name,*a,**kw): self.images.append(name)
 
 def render(data, **inputs):
     settings = {'endpoint': 'https://example.invalid/status', 'readkey': 'test-only-key'}
@@ -33,15 +34,15 @@ def render(data, **inputs):
 class Behavior(unittest.TestCase):
     def test_live_configuration_and_transport(self):
         for settings, expected in [
-            ({}, ['BAMBU STATUS', 'SETUP REQUIRED', 'ADD ENDPOINT + KEY']),
-            ({'endpoint': 'https://example.invalid/status'}, ['BAMBU STATUS', 'SETUP REQUIRED', 'ADD ENDPOINT + KEY']),
-            ({'readkey': 'test-only-key'}, ['BAMBU STATUS', 'SETUP REQUIRED', 'ADD ENDPOINT + KEY']),
-            ({'endpoint': 'http://example.invalid/status', 'readkey': 'test-only-key'}, ['BAMBU STATUS', 'INVALID ENDPOINT', 'HTTPS REQUIRED']),
-            ({'endpoint': 'nonsense', 'readkey': 'test-only-key'}, ['BAMBU STATUS', 'INVALID ENDPOINT', 'HTTPS REQUIRED']),
+            ({}, ['PRINTER STATUS', 'SETUP REQUIRED', 'ADD ENDPOINT + KEY']),
+            ({'endpoint': 'https://example.invalid/status'}, ['PRINTER STATUS', 'SETUP REQUIRED', 'ADD ENDPOINT + KEY']),
+            ({'readkey': 'test-only-key'}, ['PRINTER STATUS', 'SETUP REQUIRED', 'ADD ENDPOINT + KEY']),
+            ({'endpoint': 'http://example.invalid/status', 'readkey': 'test-only-key'}, ['PRINTER STATUS', 'INVALID ENDPOINT', 'HTTPS REQUIRED']),
+            ({'endpoint': 'nonsense', 'readkey': 'test-only-key'}, ['PRINTER STATUS', 'INVALID ENDPOINT', 'HTTPS REQUIRED']),
         ]:
             get = Mock(side_effect=AssertionError('Unexpected network request'))
             with patch.dict(ns, http=SimpleNamespace(get=get)):
-                c=Canvas(); ns['main'](c, SimpleNamespace(inputs=settings))
+                c=Canvas(); ns['main'](c, SimpleNamespace(inputs=settings, now=SimpleNamespace(unix=1800000000)))
             self.assertEqual(c.texts, expected)
             get.assert_not_called()
         settings = {'endpoint': 'https://example.invalid/status', 'readkey': 'test-only-key'}
@@ -51,10 +52,10 @@ class Behavior(unittest.TestCase):
                 response['json'] = ns['demo']('BOTH IDLE')
             get = Mock(return_value=response)
             with patch.dict(ns, http=SimpleNamespace(get=get)):
-                c=Canvas(); ns['main'](c, SimpleNamespace(inputs=settings))
+                c=Canvas(); ns['main'](c, SimpleNamespace(inputs=settings, now=SimpleNamespace(unix=1800000000)))
             get.assert_called_once_with(settings['endpoint'], headers={'x-api-key': settings['readkey']}, ttl_seconds=300)
             if status != 200:
-                self.assertEqual(c.texts, ['BAMBU STATUS', 'NO PRINTER DATA', 'CHECK CONNECTION'])
+                self.assertEqual(c.texts, ['PRINTER STATUS', 'NO PRINTER DATA', 'CHECK CONNECTION'])
             else:
                 self.assertIn('READY', c.texts)
             self.assertNotIn(settings['endpoint'], ' '.join(c.texts))
@@ -67,26 +68,30 @@ class Behavior(unittest.TestCase):
         get = Mock(side_effect=AssertionError('Demo requested network data'))
         with patch.dict(ns, http=SimpleNamespace(get=get)):
             for scenario in scenarios:
-                for mode in ['Auto', 'AMS', 'Diagnostics']:
+                for mode in ['Auto', 'AMS', 'AMS 2 Pro', 'AMS HT', 'Summary', 'Diagnostics']:
                     ctx = SimpleNamespace(inputs={'demo': scenario, 'viewmode': mode}, now=SimpleNamespace(unix=1800000000))
                     c=Canvas(); ns['main'](c,ctx)
-                    self.assertIn('DEMO', c.texts)
+                    self.assertNotIn('DEMO', c.texts)
                     self.assertNotIn('SETUP REQUIRED', c.texts)
         get.assert_not_called()
 
     def test_idle_hides_old_jobs_and_zero_totals(self):
         data=ns['demo']('IDLE ZERO'); c=render(data)
-        self.assertIn('READY FOR YOUR NEXT PRINT',c.texts)
+        self.assertIn('READY',c.texts)
+        self.assertIn('p2s.png',c.images)
+        self.assertIn('x2d.png',c.images)
         self.assertFalse(any('CAT' in s or '0 PRINT' in s for s in c.texts))
     def test_dual_problem_retains_other_print(self):
         for scenario in ['BOTH PRINTING','PAUSED + PRINTING','ERROR + PRINTING','OFFLINE + PRINTING']:
             c=render(ns['demo'](scenario))
-            self.assertIn('P2S',c.texts); self.assertIn('X2D',c.texts)
+            self.assertIn('p2s-wordmark.png',c.images); self.assertIn('x2d-wordmark.png',c.images)
+            self.assertIn('p2s-mini.png',c.images); self.assertIn('x2d-mini.png',c.images)
             self.assertEqual(len(c.bars),2)
     def test_complete_is_full(self):
         c=render(ns['demo']('PRINT FINISHED'))
         self.assertEqual(c.bars[0][0][4],100)
-        self.assertIn('FINISHED 10:18 PM',c.texts)
+        self.assertIn('10:18P',c.texts)
+        self.assertIn('COMPLETE',c.texts)
     def test_expired_event_returns_to_print(self):
         d=ns['demo']('PRINT STARTED'); d['event']['expires_at']=1
         self.assertNotIn('NEW PRINT STARTED',render(d).texts)
@@ -109,6 +114,49 @@ class Behavior(unittest.TestCase):
         a=render(ns['demo']('P2S PRINTING')).bars[0][1]['color']
         b=render(ns['demo']('MULTICOLOR CHANGE')).bars[0][1]['color']
         self.assertNotEqual(a,b)
+
+    def test_single_slot_ht_loaded_empty_and_missing(self):
+        d=ns['demo']('AMS HT')
+        c=render(d,viewmode='AMS HT')
+        self.assertIn('PETG-CF',c.texts)
+        self.assertIn('ACTIVE',c.texts)
+        self.assertIn('ams-ht.png',c.images)
+        self.assertFalse(any(s in c.texts for s in ['A1','A2','A3','A4','HT1','DY1']))
+        self.assertIn('NOT LOADED',render(ns['demo']('AMS HT EMPTY'),viewmode='AMS HT').texts)
+        self.assertEqual(c.images,render(ns['demo']('AMS HT EMPTY'),viewmode='AMS HT').images)
+        self.assertIn('x2d-wordmark.png',c.images)
+        self.assertIn('LOADED',render(ns['demo']('AMS HT LOADED'),viewmode='AMS HT').texts)
+        for p in d['printers']: p['ams_slots']=None
+        self.assertIn('NO HT DATA',render(d,viewmode='AMS HT').texts)
+
+    def test_ams_pro_excludes_ht_and_preserves_material(self):
+        d=ns['demo']('AMS HT')
+        c=render(d,viewmode='AMS 2 Pro')
+        self.assertTrue(all(s in c.texts for s in ['A1','A2','A3','A4']))
+        self.assertIn('ams-2-pro.png',c.images)
+        self.assertIn('ams-2-pro-wordmark.png',c.images)
+        self.assertIn('p2s-wordmark.png',c.images)
+        self.assertIn('ACTIVE A2 / PLA',c.texts)
+        self.assertNotIn('PETG-CF',c.texts)
+
+    def test_nozzle_tracks_progress_not_time(self):
+        p=ns['demo']('P2S PRINTING')['printers'][0]
+        a,b=Canvas(),Canvas()
+        ns['single'](a,p); ns['single'](b,p)
+        self.assertEqual(a.rects,b.rects)
+        self.assertEqual(a.texts,b.texts)
+        self.assertTrue(any('11:42 PM' in s for s in a.texts))
+        p['progress']=99; c=Canvas(); ns['single'](c,p)
+        self.assertNotEqual(a.rects,c.rects)
+        self.assertTrue(all(44<=r[0][0]<=r[0][2]<=181 for r in c.rects))
+
+    def test_summary_retains_totals(self):
+        d=ns['demo']('BOTH IDLE')
+        c=render(d,viewmode='Summary')
+        self.assertIn('3 PRINTS',c.texts)
+        self.assertIn('11H 24M',c.texts)
+        self.assertIn('bambu-logo-large.png',c.images)
+        self.assertIn('P2S / X2D',c.texts)
     def test_clock_and_color_unknowns(self):
         self.assertEqual(ns['clock']('2026-09-21T23:42:00-04:00'),'11:42 PM')
         self.assertEqual(ns['clock'](None),'')
