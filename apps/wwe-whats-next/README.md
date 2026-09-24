@@ -33,4 +33,4 @@ are filled from WWE.com events when the card omits them. Weekly TV without a
 listed time is shown as **8PM ET**. Coverage follows what those feeds publish,
 not a complete WWE calendar.
 
-Refresh is 60 seconds. HTTP cache is 900 seconds. No API key.
+Refresh is 30 minutes. HTTP cache is 900 seconds. No API key.

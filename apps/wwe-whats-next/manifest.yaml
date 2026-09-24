@@ -9,7 +9,7 @@ category: Sports
 entry: app.star
 width: 192
 height: 32
-refresh: 60
+refresh: 1800
 pages:
 - overview
 - card1
@@ -47,6 +47,11 @@ inputs:
   - RAW
   - SMACKDOWN
   - NXT
+  options:
+  - AUTO
+  - RAW
+  - SMACKDOWN
+  - NXT
   help: AUTO selects the earliest future dated WWE card in the available feed. Coverage
     may be incomplete.
 - key: results
@@ -55,6 +60,9 @@ inputs:
   label: Show Previous Results
   default: "ON"
   choices:
+  - "OFF"
+  - "ON"
+  options:
   - "OFF"
   - "ON"
   help: When ON, add pages for the last completed show of the selected brand. Main

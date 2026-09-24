@@ -2,9 +2,8 @@
 # rail, compact eyebrow, wrestler names as the hero. No portraits, no
 # source chrome, no full-screen header. Title matches with icons reuse
 # the WWE Champions 72x32 belt at x=10. Previous-show results reuse that
-# City/time from the lineup when present. If the card omits them, WWE.com
-# events fills the dated city and the single next PLE on the overview.
-# build.py joins these files.
+# layout. City/time from the lineup when present. If the card omits them,
+# WWE.com events fills the dated city and the single next PLE on the overview.
 BRANDS = ["RAW", "SMACKDOWN", "NXT"]
 COLORS = {"RAW": "#E10600", "SMACKDOWN": "#3D7EFF", "NXT": "#E7B43A", "WWE": "#D8DEE8"}
 DEEP = {"RAW": "#6B0000", "SMACKDOWN": "#10244A", "NXT": "#3A2E10", "WWE": "#101018"}
@@ -236,6 +235,13 @@ def normalize_item(raw):
         stakes = bits[0]
         names = bits[1]
         label = stakes
+    # F4W writes title bouts as "X CHAMPION A DEFENDS AGAINST B".
+    if " DEFENDS AGAINST " in names and " CHAMPION " in names.split(" DEFENDS AGAINST ", 1)[0]:
+        left, right = names.split(" DEFENDS AGAINST ", 1)
+        title, champ = left.split(" CHAMPION ", 1)
+        stakes = (stakes + " " if stakes else "") + title + " CHAMPIONSHIP"
+        label = stakes
+        names = champ + " VS " + right
     if " VS " not in names:
         return {"kind": "segment", "label": "ANNOUNCED", "names": [], "text": segment_text(raw), "belt": "", "icon": "mic"}
     if " FOR THE " in names:
