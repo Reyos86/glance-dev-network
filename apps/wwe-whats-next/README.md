@@ -39,3 +39,13 @@ listed time is shown as **8PM ET**. Coverage follows what those feeds publish,
 not a complete WWE calendar.
 
 Refresh is 30 minutes. HTTP cache is 900 seconds. No API key.
+
+## Art
+
+The overview, empty and error screens show a pixel-art ring tinted with the
+brand. Match pages carry a 2x sprite for the match type (face-off, tag team,
+triple threat, ladder, steel cage, Money in the Bank case, mic for promos), and
+results without a belt show the winner with arms raised.
+
+Catalog previews use a fixed demo card: set `PREVIEW_DEMO = True` in
+`app.star`, regenerate the previews, then set it back to `False`.
