@@ -51,7 +51,7 @@ No API key is required.
 ## Display behavior
 
 - **Field layout** — cars sorted by running position, packed into columns (about five cars per column). The top-five column is highlighted. Overflow beyond panel width is dropped.
-- **Position moves** — car number green for gains and red for losses (from feed differentials when present); P1 gold when unchanged.
+- **Position moves** — car number green for gains and red for losses (from feed differentials when present), otherwise white. The leader gets no special color; P1 is already the first slot on the pylon.
 - **Favorites** — a favorite car's cell gets a dim wash in the chosen color and its position number turns that color. The car number, status ticks, Chase bar, and lead-lap cut are drawn exactly as they would be without it.
 - **Pit tick (blue)** — recent pit within the last five leader laps; omitted when the car is out or repairing. After the checkered flag, the drive down pit road to the garage (logged by the feed as a stop on the final lap) is ignored.
 - **DVP tick (orange)** — car is on Damaged Vehicle Policy.

@@ -44,7 +44,6 @@ COLORS = {
     "panel": "#0A0D12",
     "text": "#F4F7FB",
     "muted": "#4B5563",
-    "accent2": "#FFD166",
     "up": "#22C55E",
     "down": "#EF4444",
     "out": "#FF2020",
@@ -458,8 +457,6 @@ def car_number_color(row, on_lead):
         return COLORS["up"]
     if row["delta"] < 0:
         return COLORS["down"]
-    if row["pos"] == 1:
-        return COLORS["accent2"]
     return COLORS["text"]
 
 
