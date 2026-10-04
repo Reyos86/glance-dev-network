@@ -55,7 +55,7 @@ No API key is required.
 - **Favorites** — a favorite car's cell gets a dim wash in the chosen color and its position number turns that color. The car number, status ticks, Chase bar, and lead-lap cut are drawn exactly as they would be without it.
 - **Pit tick (blue)** — recent pit within the last five leader laps; omitted when the car is out or repairing. After the checkered flag, the drive down pit road to the garage (logged by the feed as a stop on the final lap) is ignored.
 - **DVP tick (orange)** — car is on Damaged Vehicle Policy.
-- **Garage / repair** — yellow tick for garage or off-track (not retired), during races only; in practice and qualifying, off-track cars keep muted numbers but no tick. Retired cars get a red DNF-style tick and muted numbers.
+- **Garage / repair** — yellow tick for garage or off-track (not retired), during races only. Before the green flag (lap 0 or the warm-up flag) only garage status counts, because the feed's on-track signal is unreliable then and has marked the gridded pole sitter as off track; in practice and qualifying, off-track cars keep muted numbers but no tick. Retired cars get a red DNF-style tick and muted numbers.
 - **Fastest lap (purple)** — lowest positive last-lap time among cars still on track / in pits.
 - **Lead lap** — soft cut before the first car a lap or more down; lapped cars use muted grey numbers.
 - **Header** — series short name plus session context. Practice/qualifying show `PRACTICE` / `QUAL` (with short track name when space allows) so those sessions do not read as a green-flag race; race sessions show stage and laps to go. Accent color follows flag state when known.

@@ -265,6 +265,10 @@ def vehicle_rows(feed, chase_on):
     final_lap = 0
     if int(feed.get("flag_state", 0)) in [5, 9]:
         final_lap = int(feed.get("laps_in_race", 0))
+    # Before the green flag (lap 0, or the warm-up flag) CF's is_on_track is
+    # unreliable: the pole sitter has shown as off track while gridded. Only
+    # garage status counts as a repair until the race is under way.
+    pre_green = in_race and (race_lap <= 0 or int(feed.get("flag_state", 0)) == 8)
     fastest_num = fastest_last_lap_num(vehicles)
     leader_laps = 0
     for car in vehicles:
@@ -274,7 +278,7 @@ def vehicle_rows(feed, chase_on):
     rows = []
     for car in vehicles:
         status = int(car.get("status", 1))
-        on_track = bool(car.get("is_on_track", True))
+        on_track = bool(car.get("is_on_track", True)) or pre_green
         num = str(car.get("vehicle_number", "?"))
         out = is_retired(status)
         # Off track outside a race keeps its dim number but drops the
